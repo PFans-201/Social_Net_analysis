@@ -1,0 +1,20 @@
+# Core data sciences
+pandas>=2.3.3
+numpy>=2.3.4
+scipy>=1.16.3
+scikit-learn>=1.7.2
+
+# Network analysis
+networkx>=3.5
+karateclub>=1.2.2 #with gclam algorithm
+cdlib>=0.4.0
+
+# Sentiment analysis 
+vaderSentiment>=3.3.2
+
+# Visualization
+matplotlib>=3.10.7
+seaborn>=0.13.2
+
+# Jupyter Kernel
+ipykernel>=7.1.0

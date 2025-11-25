@@ -1,0 +1,90 @@
+# OS / Files
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Icon?
+*.swp
+*.swo
+*.orig
+*.lock
+*.log
+*.tmp
+*.temp
+
+# Git
+.git/
+*.patch
+*.diff
+
+# Archives / Packages
+*.zip
+*.tar
+*.tgz
+*.gz
+*.rar
+*.7z
+
+# Editors / IDE
+.vscode/
+.idea/
+*.iml
+*.code-workspace
+*.sublime-project
+*.sublime-workspace
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyc
+*.so
+*.egg
+*.egg-info/
+.eggs/
+build/
+develop-eggs/
+dist/
+htmlcov/
+.coverage*
+.pytest_cache/
+.mypy_cache/
+.dmypy.json
+.pyre/
+.pytype/
+.tox/
+venv/
+ENV/
+*env/
+*venv/
+.env
+.env.*
+.cache/
+.ipynb_checkpoints/
+.poetry/
+pip-wheel-metadata/
+
+# Data / ML
+*.ipynb_checkpoints
+*.h5
+*.ckpt
+*.pb
+*.pt
+*.onnx
+*.model
+*.pkl
+*.joblib
+*.npy
+*.npz
+
+# Raw data files
+Documentaries.corpus
+
+
+
+# Env / Secrets
+.env
+.env.*
+*.secret
+*.key
+*.pem
+*.crt
