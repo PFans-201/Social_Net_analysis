@@ -15,14 +15,11 @@ import csv
 import itertools
 import json
 import logging
-import multiprocessing as mp
 import os
 import pickle
 import traceback
 import warnings
 from collections import defaultdict
-from datetime import datetime
-from functools import partial
 from multiprocessing import Pool, cpu_count
 
 import community as community_louvain
@@ -30,10 +27,8 @@ import networkx as nx
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
-import psutil
 import seaborn as sns
 from karateclub import BigClam
-from tqdm import tqdm
 
 from src.helpers import sentiment_analysis
 from src.helpers import threading
@@ -72,6 +67,9 @@ class RedditNetworkAnalyzer:
     def __init__(
             self,
             data_path: str,
+            snapshots_per_year: int = 4,
+            min_giant_component_size: int = 10_000,
+            overlapping_communities: bool = True,
             use_checkpoints: bool = True,
             checkpoint_dir: str = "./checkpoints",
             reports_dir: str = "./reports",
@@ -79,6 +77,7 @@ class RedditNetworkAnalyzer:
             max_threads_per_worker: int = 1,
             bigclam_node_threshold: int = 20_000,
             bigclam_edge_threshold: int = 200_000,
+            random_seed: int = 28,
         ):
         """
         Initialize the analyzer.
@@ -109,11 +108,23 @@ class RedditNetworkAnalyzer:
             bigclam_edge_threshold (int, optional): Edge count threshold
                 to enable BigClam community detection (default: 200_000).
         """
+
         self.data_path = data_path
+        self.snapshots_per_year = snapshots_per_year
+        self.min_giant_component_size = min_giant_component_size
+        self.overlapping_communities = overlapping_communities
         self.use_checkpoints = use_checkpoints
         self.checkpoint_dir = checkpoint_dir
+        self.reports_dir = reports_dir
+        self.random_seed = random_seed
+
         self.checkpoint_loading_step = "full_data_raw.pkl"
         self.checkpoint_preprocessing_step = "full_data_preprocessed.pkl"
+        self.community_memberships_filename = "community_memberships.pkl"
+        self.general_metrics_filename = "general_metrics.csv"
+        self.network_metrics_filename = "network_metrics.csv"
+        self.stability_metrics_filename = "stability_metrics.csv"
+        self.community_metrics_filename = "community_metrics.csv"
 
         # To be set in `load_data`
         self.global_comment_map = None
@@ -123,6 +134,10 @@ class RedditNetworkAnalyzer:
         # To be set in `create_periodical_snapshots`
         self.temporal_unit = None
         self.snapshots = None
+
+        # To be set in `detect_communities`
+        self.detected_communities = None
+        self.detected_communities_synthetic_data = None
 
         # Default to all but one CPU to leave system responsive
         self.n_workers = n_workers or max(1, cpu_count() - 1)
@@ -140,60 +155,49 @@ class RedditNetworkAnalyzer:
         # Friendly console initialization message
         print(f"Initialized Reddit Network Analyzer with {self.n_workers} parallel workers")
 
-    def save_checkpoint(self, data, filename):
+    def save_checkpoint(self, data: object, filename: str) -> bool:
         """
         Save a Python object to a pickle checkpoint file.
 
         Args:
-            data: Any picklable Python object to save.
+            data (object): Any picklable Python object to save.
             filename (str): Filename to use for the checkpoint (saved inside checkpoint_dir).
 
         Returns:
-            bool: True if saved successfully, False otherwise.
+            bool: True if checkpoint is saved successfully, False otherwise.
         """
         filepath = os.path.join(self.checkpoint_dir, filename)
         try:
-            with open(filepath, 'wb') as f:
+            with open(filepath, "wb") as f:
                 pickle.dump(data, f, protocol=pickle.HIGHEST_PROTOCOL)
-            print(f"   ✓ Checkpoint saved: {filename}")
+            print(f"Checkpoint saved: {filename}")
             return True
         except Exception as e:
             # Avoid raising here; callers may continue without checkpoint
-            print(f"   ✗ Failed to save {filename}: {e}")
+            print(f"Failed to save checkpoint {filename}: {e}")
             return False
 
-    def load_checkpoint(self, filename, max_age_hours=48):
+    def load_checkpoint(self, filename: str) -> object:
         """
-        Load a checkpoint file if it exists and is not older than max_age_hours.
+        Load a checkpoint file. Fails gracefully if the checkpoint does not exist.
 
         Args:
-            filename (str): Filename (inside checkpoint_dir) to load.
-            max_age_hours (int): Maximum allowed age of checkpoint in hours.
+            filename (str): Name of the file to load (located in `self.checkpoint_dir`).
 
         Returns:
-            object or None: The unpickled object or None if loading failed or file is old.
+            object or None: The unpickled object or None if loading failed.
         """
         filepath = os.path.join(self.checkpoint_dir, filename)
-        if os.path.exists(filepath):
-            try:
-                file_time = datetime.fromtimestamp(os.path.getmtime(filepath))
-                file_age = (datetime.now() - file_time).total_seconds() / 3600
+        try:
+            with open(filepath, "rb") as f:
+                data = pickle.load(f)
+            print(f"Loaded checkpoint: {filename}")
+            return data
+        except Exception as e:
+            print(f"Failed to load checkpoint {filename}: {e}")
+            return None
 
-                # Respect checkpoint freshness to avoid stale results
-                if file_age > max_age_hours:
-                    return None
-
-                with open(filepath, 'rb') as f:
-                    data = pickle.load(f)
-                print(f"   ✓ Loaded checkpoint: {filename}")
-                return data
-            except Exception as e:
-                # Log but do not crash; caller can fallback to recomputation
-                logger.warning(f"Failed to load checkpoint {filename}: {e}")
-                return None
-        return None
-
-    def load_data(self):
+    def load_data(self) -> tuple:
         """
         Load and preprocess raw subreddit dataset containing posts and
         comments by user, located in the configured source directories.
@@ -287,7 +291,7 @@ class RedditNetworkAnalyzer:
                 logger.error(f"Failed to load JSONL file: {e}")
                 return None
 
-        def _load_posts(file_name: str = "conversations.json"):
+        def _load_posts(file_name: str = "conversations.json") -> pd.DataFrame:
             """
             Load posts from a JSON file.
 
@@ -307,7 +311,7 @@ class RedditNetworkAnalyzer:
             df_posts = df_posts.reset_index(drop=True)
             return df_posts
 
-        def _load_comments(file_name_without_extension: str = "utterances"):
+        def _load_comments(file_name_without_extension: str = "utterances") -> pd.DataFrame:
             """
             Load comments from CSV or JSONL using chunked reading and robust text handling.
             Prefers CSV (faster) if present; otherwise reads JSONL and saves a CSV copy
@@ -428,13 +432,14 @@ class RedditNetworkAnalyzer:
 
         return df_posts, df_comments
 
-    def preprocess_comments(self):
+    def preprocess_comments(self) -> pd.DataFrame:
         """
-        Run sentiment analysis in parallel over comment DataFrame partitions and add
-        basic temporal features. Create checkpoints only if that configuration is set.
+        Preprocess comments and posts datasets. Run sentiment analysis
+        over comments and add basic temporal features. Create checkpoints
+        only if that configuration is set.
 
         Returns:
-            pd.DataFrame: DataFrame enriched with 'sentiment', 'datetime', 'week', 'month', 'year'.
+            pd.DataFrame: Cleaned and enriched comments data.
         """
 
         print("Preprocessing comment data...")
@@ -511,6 +516,7 @@ class RedditNetworkAnalyzer:
 
         self.df_posts = df_posts
         self.df_comments = df_comments
+
         return df_comments
 
     def create_periodical_snapshots(
@@ -520,13 +526,14 @@ class RedditNetworkAnalyzer:
             snapshots_per_year: int = 4,
     ) -> dict:
         """
-        Construct temporal user-user interaction networks for periods where a minimum
-        giant component size was observed.
+        Construct temporal snapshots of the user-user interaction network
+        for periods where a minimum giant component size is observed.
 
         Steps:
-          - Scan all temporal periods to estimate giant component (GCC) sizes for each date.
-          - Select top dates per year according to provided rules.
-          - Build networks for the selected dates in sequence and optionally checkpoint.
+          - Scan data to estimate giant component (GCC) sizes for each snapshot period.
+          - Select snapshot periods per year according to the provided rules.
+          - Build weighed user-user interaction networks for the selected periods.
+          - (Optional) Checkpoint produced data.
 
         Args:
             temporal_unit (str, optional): Column name in df_comments to use for
@@ -538,14 +545,16 @@ class RedditNetworkAnalyzer:
                 per year (default: 4).
 
         Returns:
-            dict: A dictionary mapping dates to user-user network objects.
+            dict: A dictionary mapping periods to user-user networks.
         """
 
         def _build_snapshot_network_worker(args):
             """
-            Worker that builds directed reply network and undirected user network for a single period.
+            Worker that builds undirected user-user network for a single period.
+
             Args:
                 args (tuple): (period, period_df, global_comment_map, min_interactions)
+
             Returns:
                 tuple: (period, networks_dict)
             """
@@ -628,7 +637,7 @@ class RedditNetworkAnalyzer:
         self.temporal_unit = temporal_unit
         max_date = 12 if temporal_unit == "month" else 52  # assume "weeks" otherwise
         period = snapshots_per_year % max_date if snapshots_per_year != max_date else max_date
-        all_periods = list(range(1, max_date + 1, max_date // period))
+        all_periods = list(range(1, max_date + 1, max_date // period))[:period]
 
         df_comments = self.df_comments[self.df_comments[temporal_unit].isin(all_periods)]
         df_comments["aux_partition_key"] = df_comments["year"].astype(str) + "#" + df_comments[temporal_unit].astype(str)
@@ -653,7 +662,7 @@ class RedditNetworkAnalyzer:
             # Process periods in parallel using top-level worker to avoid pickling local functions
             period_gcc_sizes = {}
             with Pool(self.n_workers) as pool:
-                for i, (period, gcc_size) in enumerate(pool.imap_unordered(estimate_gcc_size_worker, period_args), 1):
+                for i, (period, gcc_size) in enumerate(pool.imap_unordered(_estimate_gcc_size_worker, period_args), 1):
                     period_gcc_sizes[period] = gcc_size
                     # print lightweight progress updates
                     if i % max(1, min(10, n_periods // 10)) == 0 or i == n_periods:
@@ -709,9 +718,7 @@ class RedditNetworkAnalyzer:
 
             # Create snapshots in parallel using the top-level worker
             if snapshot_build_args:
-                # with Pool(self.n_workers) as pool:
-                    # for i, (period, networks) in enumerate(pool.imap_unordered(_build_snapshot_network_worker, snapshot_build_args), 1):
-                for args in snapshot_build_args:
+                for i, args in enumerate(snapshot_build_args):
                     period, _, _, _ = args
                     networks = _build_snapshot_network_worker(args)
                     if networks and networks[1].get("user_network") and networks[1]["user_network"].number_of_nodes() > 0:
@@ -735,10 +742,164 @@ class RedditNetworkAnalyzer:
 
         except Exception as e:
             print(f"Network construction failed: {e}")
-            self.snapshots = None
+            self.snapshots = {}
             return {}
 
-    def perform_exploratory_data_analysis(self):
+    def detect_communities(
+            self,
+            synthetic: bool = False,
+            synthetic_network: nx.Graph = None,
+            min_admissible_nodes: int = 20
+        ) -> dict:
+        """
+        Detect communities in the networks. Supports overlapping detection with BigClam
+        or non-overlapping via the Louvain algorithm as per the analyzer configurations.
+
+        If a synthetic network is provided, it will detect communities in that network.
+        Otherwise, detect communities in the snapshots previously generated. Outputs
+        are saved to the respective class attribute.
+
+        Args:
+            synthetic (bool, optional): If True, apply community detection algorithms
+                to the synthetic network provided; otherwise, apply them to the observed
+                snapshots (default: False).
+            synthetic_network (nx.Graph, optional): A synthetic undirected network (default: None).
+            min_admissible_nodes (int, optional): Minimum number of nodes that the network
+                must contain in order to apply a community detection algorithm (default: 20).
+
+        Returns:
+            dict: Results mapping network name to detected community memberships.
+        """
+
+        def _detect_overlapping_communities(period, network):
+            """Apply BigClam algorithm to detect communities."""
+
+            try:
+                dimensions = max(2, min(20, int(np.sqrt(n_nodes) / 5)))
+
+                bigclam = BigClam(
+                    dimensions=dimensions,
+                    iterations=1000,
+                    seed=self.random_seed,
+                )
+
+                adj_matrix = nx.to_scipy_sparse_array(network)
+                bigclam.fit(adj_matrix)
+                memberships = bigclam.get_memberships()
+
+                communities = {}
+                node_list = list(network.nodes())
+                for node_idx, comm_affiliations in enumerate(memberships):
+                    if comm_affiliations and len(comm_affiliations) > 0:
+                        node_name = node_list[node_idx]
+                        communities[node_name] = list(comm_affiliations)
+
+                # Validate result for reasonableness
+                if communities:
+                    all_community_ids = set()
+                    for comm_affiliations in communities.values():
+                        all_community_ids.update(comm_affiliations)
+
+                    n_communities = len(all_community_ids)
+                    overlapping_users = sum(1 for comm_affiliations in communities.values() if len(comm_affiliations) > 1)
+
+                    if n_communities > 1 and n_communities < len(communities) * 0.8:
+                        print(
+                            f"BigCLAM successful for {period}:",
+                            f"    • Detected {n_communities} communities",
+                            f"    • Users in community overlaps: {overlapping_users}",
+                            f"    • Overlap ratio: {overlapping_users * 100 / len(node_list):.1f} %",
+                            sep="\n",
+                        )
+
+                return communities
+
+            except Exception as e:
+                print(f"BigCLAM algorithm failed for {period}: {e}")
+                return {}
+
+        def _detect_non_overlapping_communities(period, network):
+            """Apply Louvain algorithm to detect communities."""
+
+            try:
+                weighted_net = network.copy()
+                for _, _, d in weighted_net.edges(data=True):
+                    if "weight" not in d:
+                        d["weight"] = 1.0
+
+                partition = community_louvain.best_partition(
+                    weighted_net,
+                    weight="weight",
+                    random_state=self.random_seed
+                )
+
+                communities = {}
+                for node, community_id in partition.items():
+                    communities[node] = [community_id]
+
+                n_communities = len(set(partition.values()))
+                print(
+                    f"Louvain successful for {period}:",
+                    f"    Detected {n_communities} communities",
+                    sep="\n",
+                )
+                return communities
+
+            except Exception as e:
+                print(f"Louvain algorithm failed for {period}: {e}")
+                return {}
+
+        print(
+            "=" * 70,
+            "COMMUNITY DETECTION",
+            "=" * 70,
+            f"Detection mode: {'Overlapping communities (BigClam)' if self.overlapping_communities else 'Non-overlapping communities (Louvain)'}",
+            f"Target: {'Synthetic network' if synthetic else 'Observed network'}",
+            sep="\n",
+        )
+
+        snapshots = {"synthetic_network": synthetic_network} if synthetic else self.snapshots
+        detection_function = _detect_overlapping_communities if self.overlapping_communities else _detect_non_overlapping_communities
+
+        results = {}
+        if self.use_checkpoints:
+            checkpoint_data = self.load_checkpoint(self.community_memberships_filename)
+            if checkpoint_data is not None:
+                results = checkpoint_data
+
+        for period, network in snapshots.items():
+
+            user_network = network.get("user_network")
+            n_nodes = user_network.number_of_nodes()
+
+            if n_nodes < min_admissible_nodes:
+                print(f"Network {period} does not have the minimum required number of nodes. Skipping community detection!")
+                results[period] = {}
+                continue
+
+            if self.use_checkpoints and period in results.keys():
+                print(f"Using checkpoint data for network {period}. Skipping community detection!")
+                continue
+
+            if user_network is None:
+                print(f"No data for {period}!")
+                continue
+
+            results[period] = detection_function(period, user_network)
+
+        if synthetic:
+            self.detected_communities_synthetic_data = results
+        else:
+            self.detected_communities = results
+
+        if self.use_checkpoints:
+            self.save_checkpoint(results, self.community_memberships_filename)
+
+        return results
+
+    ############
+
+    def run_network_analysis(self):
         """
         Perform exploratory data analysis and produce diagnostic plots
         for each produced snapshot of the network. This includes calculating
@@ -875,12 +1036,12 @@ class RedditNetworkAnalyzer:
                 metric_value=(post_user_counts > 1).sum() * 100 / post_user_counts.sum(),
             )
 
-        output_path = os.path.join(self.reports_dir, "general_metrics.csv")
+        output_path = os.path.join(self.reports_dir, self.general_metrics_filename)
         general_stats = pd.DataFrame(general_stats)
         general_stats.to_csv(output_path, index=False)
         print(f"Exported report to '{output_path}'")
 
-        return general_stats, network_metrics
+        return general_stats
 
     def export_network_metrics(self):
         """
@@ -970,7 +1131,7 @@ class RedditNetworkAnalyzer:
             network_metrics.append(stats)
 
         if network_metrics:
-            network_report_output_path = os.path.join(self.reports_dir, "network_metrics.csv")
+            network_report_output_path = os.path.join(self.reports_dir, self.network_metrics_filename)
             df_metrics = pd.DataFrame(network_metrics)
             cols = ['period'] + [c for c in df_metrics.columns if c != 'period']
             df_metrics = df_metrics[cols]
@@ -981,208 +1142,6 @@ class RedditNetworkAnalyzer:
             print("No network metrics to export")
 
         return df_metrics
-
-    def build_reply_network(self, df_comments, min_interactions=1, global_comment_map=None, verbose=True):
-        """
-        Build a directed reply network from comments.
-        Each edge represents replies from one user to another, weighted by the number
-        of replies and annotated with sentiment statistics.
-
-        Args:
-            df_comments (pd.DataFrame): Comment DataFrame for a single period.
-            min_interactions (int): Minimum number of replies between user pairs to
-                                    include an edge in the network.
-            global_comment_map (pd.Series or None): Optional mapping from comment IDs
-                                    to user IDs. If provided, replies comments outside the current
-                                    period will be correctly attributed.
-        Returns:
-            nx.DiGraph: Directed graph representing the reply network.
-        """
-        logger.info("Building reply network...")
-
-        try:
-            # Validate that required columns are present
-            required_cols = ['id', 'user', 'reply_to', 'text']
-            missing_cols = [col for col in required_cols if col not in df_comments.columns]
-            if missing_cols:
-                logger.error(f"Missing required columns: {missing_cols}")
-                raise ValueError(f"Missing required columns: {missing_cols}")
-
-            # Filter out deleted or missing users and ensure reply_to exists
-            df_filtered = df_comments[
-                (df_comments['user'] != '[deleted]') &
-                (df_comments['user'].notna()) &
-                (df_comments['reply_to'].notna())
-            ].copy()
-
-            if verbose:
-                print(f"Processing {len(df_filtered):,} comments with replies...")
-                logger.debug(f"Processing {len(df_filtered):,} comments with replies...")
-
-            # Map comment IDs to users to identify target users for replies.
-            # Use provided global_comment_map (from full dataset) if available so
-            # replies that target comments outside the current period are resolved.
-            if global_comment_map is not None:
-                comment_to_user = global_comment_map
-            else:
-                comment_to_user = df_comments.set_index('id')['user']
-            df_filtered['reply_to_user'] = df_filtered['reply_to'].map(comment_to_user)
-
-            # Keep only valid user-to-user replies, remove self-replies and deleted targets
-            valid_replies = df_filtered[
-                (df_filtered['reply_to_user'].notna()) &
-                (df_filtered['reply_to_user'] != '[deleted]') &
-                (df_filtered['user'] != df_filtered['reply_to_user'])
-            ]
-
-            logger.info(f"Valid user-to-user replies: {len(valid_replies):,}")
-            print(f"Valid user-to-user replies: {len(valid_replies):,}")
-
-            if len(valid_replies) == 0:
-                logger.warning("No valid reply interactions found")
-                print("No valid reply interactions found")
-                return nx.DiGraph()
-
-            logger.debug("Building network structure...")
-            G = nx.DiGraph()
-
-            # Aggregate interactions per user pair and collect sentiment values
-            interaction_data = defaultdict(lambda: {'count': 0, 'sentiment': []})
-
-            for _, row in valid_replies.iterrows():
-                pair = (row['user'], row['reply_to_user'])
-                interaction_data[pair]['count'] += 1
-                interaction_data[pair]['sentiment'].append(row['sentiment'])
-
-            # Add edges for pairs meeting the minimum interaction threshold
-            for (source, target), data in interaction_data.items():
-                if data['count'] >= min_interactions:
-                    G.add_edge(
-                        source,
-                        target,
-                        weight=data['count'],
-                        avg_sentiment=np.mean(data['sentiment']),
-                        min_sentiment=min(data['sentiment']),
-                        max_sentiment=max(data['sentiment']),
-                        sentiment_std=np.std(data['sentiment']) if len(data['sentiment']) > 1 else 0
-                    )
-
-            # Ensure all users appearing in interactions are present as nodes
-            all_users = set()
-            for source, target in interaction_data.keys():
-                all_users.add(source)
-                all_users.add(target)
-            G.add_nodes_from(all_users)
-
-            if G.number_of_nodes() > 0:
-                # Compute simple network-level metrics
-                density = nx.density(G)
-                avg_in_degree = sum(dict(G.in_degree()).values()) / G.number_of_nodes()
-                avg_out_degree = sum(dict(G.out_degree()).values()) / G.number_of_nodes()
-
-                if verbose:
-                    print(f"Network density: {density:.6f}")
-                    print(f"Average in-degree: {avg_in_degree:.2f}")
-                    print(f"Average out-degree: {avg_out_degree:.2f}")
-
-                # Reciprocity can be expensive; compute in a try/except
-                try:
-                    reciprocity = nx.reciprocity(G)
-                    if verbose:
-                        print(f"Reciprocity: {reciprocity:.3f}")
-                except Exception as e:
-                    reciprocity = 0
-                    logger.warning(f"Could not calculate reciprocity: {e}")
-                    if verbose:
-                        print("Could not calculate reciprocity")
-
-                # Store metadata on the graph for downstream export
-                G.graph['density'] = density
-                G.graph['avg_in_degree'] = avg_in_degree
-                G.graph['avg_out_degree'] = avg_out_degree
-                G.graph['reciprocity'] = reciprocity
-                G.graph['network_type'] = 'reply'
-                G.graph['construction_time'] = datetime.now().isoformat()
-
-            logger.info(f"Reply network built successfully: {G.number_of_nodes():,} nodes, {G.number_of_edges():,} edges")
-            return G
-
-        except Exception as e:
-            logger.error(f"Failed to build reply network: {str(e)}", exc_info=True)
-            if verbose:
-                print(f"      ✗ Failed to build reply network: {e}")
-            return nx.DiGraph()
-
-    def build_undirected_reply_network(self, df_comments, min_interactions=1, global_comment_map=None, verbose=True):
-        """
-        Convert the directed reply network into an undirected network by symmetrizing edges.
-
-        This is useful for clustering/community detection algorithms that expect undirected graphs.
-
-        Args:
-            df_comments (pd.DataFrame): Comment DataFrame for a single period.
-            min_interactions (int): Minimum interactions threshold used when building directed network.
-            global_comment_map (pd.Series or None): Optional mapping from comment IDs to user IDs. If provided, replies
-                                                    to comments outside the current period will be correctly attributed.        Returns:
-
-        Returns:
-            nx.Graph: Undirected network (may be empty).
-        """
-        print("\nBuilding undirected reply network...")
-        directed_net = self.build_reply_network(df_comments, min_interactions, global_comment_map=global_comment_map)
-        if directed_net.number_of_nodes() == 0:
-            return nx.Graph()
-
-        # Build undirected graph (keep existing logic)
-        undirected_net = nx.Graph()
-        undirected_net.add_nodes_from(directed_net.nodes())
-
-        # Add directed edges as undirected edges (will accumulate weights)
-        for u, v, data in directed_net.edges(data=True):
-            weight = data.get('weight', 1)
-            if undirected_net.has_edge(u, v):
-                undirected_net[u][v]['weight'] += weight
-            else:
-                undirected_net.add_edge(u, v, weight=weight)
-
-        # Consider reverse direction explicitly to ensure bidirectional weight aggregation
-        for u, v, data in directed_net.edges(data=True):
-            if directed_net.has_edge(v, u):
-                reverse_weight = directed_net[v][u].get('weight', 1)
-                if undirected_net.has_edge(u, v):
-                    undirected_net[u][v]['weight'] += reverse_weight
-                else:
-                    undirected_net.add_edge(u, v, weight=reverse_weight)
-
-        if verbose:
-            print(f"\nUndirected reply network: {undirected_net.number_of_nodes():,} nodes, {undirected_net.number_of_edges():,} edges")
-
-            # Compute summary statistics and attach to graph attributes
-            if undirected_net.number_of_nodes() > 0:
-                density = nx.density(undirected_net)
-                avg_degree = sum(dict(undirected_net.degree()).values()) / undirected_net.number_of_nodes()
-
-                if undirected_net.number_of_edges() > 0:
-                    try:
-                        avg_clustering = nx.average_clustering(undirected_net)
-                        print(f"Average clustering: {avg_clustering:.4f}")
-                    except Exception as e:
-                        logger.warning(f"Could not calculate average clustering: {e}")
-                        avg_clustering = 0
-                else:
-                    avg_clustering = 0
-
-                print(f"Undirected density: {density:.6f}")
-                print(f"Average degree: {avg_degree:.2f}")
-
-                # Copy directed metadata and augment
-                undirected_net.graph.update(directed_net.graph)
-                undirected_net.graph['avg_degree'] = avg_degree
-                undirected_net.graph['avg_clustering'] = avg_clustering
-                undirected_net.graph['network_type'] = 'undirected_reply'
-                undirected_net.graph['construction_time'] = datetime.now().isoformat()
-
-        return undirected_net
 
     def _create_temporal_plots(self, df_posts, df_comments):
         """
@@ -1502,226 +1461,166 @@ class RedditNetworkAnalyzer:
         plt.savefig('eda_plots/reply_network_analysis.png', dpi=300, bbox_inches='tight')
         plt.show()
 
-    # Helper to build multiple networks for a period (kept as a method for clarity)
-    def _build_reply_networks_for_period(self, period, period_df, global_comment_map=None):
+    def parallel_hub_analysis(self, community_results):
         """
-        Build directed reply network and undirected user network for a given period.
-        Args:
-            period (str): Temporal period identifier.
-            period_df (pd.DataFrame): Comments DataFrame for the period.
-            global_comment_map (pd.Series): Optional mapping from comment id to user for cross-period
-
-        Returns:
-            dict: Contains:
-                'directed_reply_network'- directed reply network (nx.DiGraph)
-                'user_network'- undirected user network (nx.Graph)
-                'network_stats'- statistics about the networks
-        """
-        try:
-            # Build directed reply network using default min_interactions=1.
-            # If a global_comment_map is passed, use it so replies targeting comments
-            # outside the current period can be resolved to their authors.
-            directed_net = self.build_reply_network(
-                period_df, min_interactions=1, global_comment_map=global_comment_map
-            )
-
-            # Convert to undirected user network for community detection
-            user_network = nx.Graph()
-            if directed_net.number_of_edges() > 0:
-                # Add undirected edges by summing directed weights
-                for u, v, d in directed_net.edges(data=True):
-                    w = d.get('weight', 1)
-                    if user_network.has_edge(u, v):
-                        user_network[u][v]['weight'] += w
-                    else:
-                        user_network.add_edge(u, v, weight=w)
-            else:
-                # If no directed edges, create an empty graph of nodes
-                user_network.add_nodes_from(directed_net.nodes())
-
-            # Compute GCC size for the undirected network
-            if user_network.number_of_nodes() == 0:
-                gcc_size = 0
-            else:
-                components = list(nx.connected_components(user_network))
-                gcc_size = len(max(components, key=len)) if components else 0
-
-            network_stats = {
-                'gcc_size': gcc_size,
-                'nodes': user_network.number_of_nodes(),
-                'edges': user_network.number_of_edges()
-            }
-
-            return {
-                'directed_reply_network': directed_net,
-                'user_network': user_network,
-                'network_stats': network_stats
-            }
-
-        except Exception as e:
-            logger.error(f"Failed to build networks for period {period}: {e}", exc_info=True)
-            return {}
-
-    def detect_overlapping_communities(self, network, method='bigclam'):
-        """
-        Detect overlapping communities in a user network using BigClam or fallback.
+        Analyze hubs (high-degree nodes) per period and optionally reuse checkpoints.
 
         Args:
-            network (nx.Graph or nx.DiGraph): Undirected or directed user-level network.
-            method (str): 'bigclam' to prefer BigClam, otherwise fallback to Louvain.
+            community_results (dict): Output of parallel_community_detection.
+            use_checkpoints (bool): Whether to load/save hub analysis checkpoints.
 
         Returns:
-            dict: Mapping user -> list of community ids (possibly multiple).
+            dict: Mapping period -> {'hubs': {user:deg}, 'degrees': {user:deg}}
         """
-        print(f"   🔍 Detecting overlapping communities with {method}...")
 
-        # Skip very small networks
-        if network.number_of_nodes() < 20:
-            return {}
+        def _analyze_hubs_worker(network_tuple):
+            """
+            Worker function to identify hubs (top percentile by degree) for a period.
 
-        try:
-            if method == 'bigclam':
-                # Choose a reasonable embedding dimensionality based on network size
-                n_nodes = network.number_of_nodes()
-                dimensions = max(2, min(20, int(np.sqrt(n_nodes) / 5)))
+            Args:
+                network_tuple (tuple): (period, network)
 
-                bigclam = BigClam(
-                    dimensions=dimensions,
-                    iterations=1000,  # More iterations for better convergence
-                    random_state=42
-                )
+            Returns:
+                tuple: (period, hubs_dict, degrees_dict)
+                    hubs_dict maps user -> degree for users above the 95th percentile.
+                    degrees_dict maps user -> degree for all users.
+            """
+            period, network = network_tuple
 
-                # Convert to sparse adjacency matrix (karateclub expects scipy sparse)
-                adj_matrix = nx.to_scipy_sparse_array(network)
-                bigclam.fit(adj_matrix)
-
-                memberships = bigclam.get_memberships()
-
-                communities = {}
-                node_list = list(network.nodes())
-
-                for node_idx, comm_affiliations in enumerate(memberships):
-                    if comm_affiliations and len(comm_affiliations) > 0:
-                        node_name = node_list[node_idx]
-                        communities[node_name] = list(comm_affiliations)
-
-                # Report simple overlap statistics
-                overlapping_users = sum(1 for affs in communities.values() if len(affs) > 1)
-                total_users = len(communities)
-
-                print(f"      • Users in communities: {total_users:,}")
-                print(f"      • Users in multiple communities: {overlapping_users:,}")
-                print(f"      • Overlap ratio: {overlapping_users/total_users*100:.1f}%")
-
-                return communities
-
-            else:
-                # Fallback to non-overlapping Louvain partitioning
-                return self._detect_non_overlapping_communities(network)
-
-        except Exception as e:
-            # If BigClam fails for any reason, fallback gracefully
-            print(f"      ✗ BigClam failed: {e}")
-            return self._detect_non_overlapping_communities(network)
-
-    def _detect_non_overlapping_communities(self, network):
-        """
-        Detect non-overlapping communities using Louvain (community-louvain package).
-
-        Args:
-            network (nx.Graph): Undirected network.
-
-        Returns:
-            dict: Mapping user -> [community_id]
-        """
-        try:
-            weighted_net = network.copy()
-            # Ensure each edge has a weight for Louvain
-            for u, v, d in weighted_net.edges(data=True):
-                if 'weight' not in d:
-                    d['weight'] = 1.0
-
-            partition = community_louvain.best_partition(weighted_net, weight='weight', random_state=42)
-
-            communities = {}
-            for node, comm_id in partition.items():
-                communities[node] = [comm_id]  # single community per user
-
-            print(f"      • Using Louvain (non-overlapping): {len(set(partition.values()))} communities")
-            return communities
-
-        except Exception as e:
-            print(f"      ✗ Louvain also failed: {e}")
-            return {}
-
-    def parallel_community_detection(self, snapshots, use_checkpoints=True, overlapping=True):
-        """
-        Detect communities for each temporal network.
-
-        Supports overlapping detection via BigClam or non-overlapping via Louvain.
-
-        Args:
-            snapshots (dict): Mapping period -> networks dict (from create_periodical_snapshots).
-            use_checkpoints (bool): Whether to attempt to load/save per-period community checkpoints.
-            overlapping (bool): If True, use overlapping detection (BigClam), otherwise Louvain.
-
-        Returns:
-            dict: Mapping period -> result dict {'communities', 'network', 'overlapping'}.
-        """
-        print("\n" + "="*70)
-        print("🏘️  PHASE 3: COMMUNITY DETECTION")
-        print("="*70)
-        print(f"\nMode: {'OVERLAPPING communities (BigClam)' if overlapping else 'Non-overlapping communities (Louvain)'}")
-
-        community_results = {}
-
-        # Prepare inputs for parallel community detection, honoring checkpoints and small networks
-        detect_args = []
-        for period, networks in snapshots.items():
-            comm_filename = f"communities_{period}.pkl"
-            if use_checkpoints:
-                period_result = self.load_checkpoint(comm_filename)
-                if period_result is not None:
-                    community_results[period] = period_result
-                    continue
-            user_network = networks.get('user_network', None)
-            if user_network is None or user_network.number_of_nodes() < 10:
-                # skip tiny networks
-                continue
-            # Save graph to disk to avoid moving huge objects between processes
-            net_path = os.path.join(self.checkpoint_dir, f"user_network_{period}.pkl")
             try:
-                with open(net_path, 'wb') as f:
-                    pickle.dump(user_network, f, protocol=pickle.HIGHEST_PROTOCOL)
-                detect_args.append((
-                    period, net_path, overlapping,
-                    self.bigclam_node_threshold, self.bigclam_edge_threshold,
-                    self.max_threads_per_worker
-                ))
-            except Exception as e:
-                logger.warning(f"Could not persist user_network for {period}: {e}")
+                degrees = dict(network.degree())
 
-        if detect_args:
-            total = len(detect_args)
-            # Spawn context + thread limiting to avoid kernel/VS Code crashes
-            ctx = mp.get_context("spawn")
-            worker_init_func = partial(threading.init_workers, max_threads=self.max_threads_per_worker)
-            with ctx.Pool(self.n_workers, initializer=worker_init_func, maxtasksperchild=1) as pool:
-                iterator = pool.imap_unordered(detect_communities_worker, detect_args, chunksize=1)
-                for (period, communities, network) in tqdm(iterator, total=total, desc="Detecting communities"):
-                    if communities and network is not None:
-                        period_result = {'communities': communities, 'network': network, 'overlapping': overlapping}
-                        community_results[period] = period_result
-                        if use_checkpoints:
-                            self.save_checkpoint(period_result, f"communities_{period}.pkl")
+                if not degrees:
+                    return (period, {}, {})
+
+                # Define hubs as nodes in the top 5% by degree
+                degree_threshold = np.percentile(list(degrees.values()), 95)
+                hubs = {node: deg for node, deg in degrees.items() if deg >= degree_threshold}
+
+                return (period, hubs, degrees)
+
+            except Exception:
+                return (period, {}, {})
+
+        # TODO: ratio of number of in-edges > number of out-edges
+
+        print("\n" + "="*70)
+        print("⭐ PHASE 4: HUB ANALYSIS")
+        print("="*70 + "\n")
+
+        hub_evolution = {}
+
+        # Prepare hub worker args (skip if checkpoint exists)
+        hub_args = []
+        for period, result in community_results.items():
+            hub_filename = f"hubs_{period}.pkl"
+            if self.use_checkpoints:
+                period_hubs = self.load_checkpoint(hub_filename)
+                if period_hubs is not None:
+                    hub_evolution[period] = period_hubs
+                    continue
+            network = result.get('network', None)
+            if network is None or network.number_of_nodes() == 0:
+                continue
+            hub_args.append((period, network))
+
+        if hub_args:
+            with Pool(self.n_workers) as pool:
+                total = len(hub_args)
+                for i, (period, hubs, degrees) in enumerate(pool.imap_unordered(_analyze_hubs_worker, hub_args), 1):
+                    if hubs:
+                        period_hubs = {'hubs': hubs, 'degrees': degrees}
+                        hub_evolution[period] = period_hubs
+                        if self.use_checkpoints:
+                            self.save_checkpoint(period_hubs, f"hubs_{period}.pkl")
+                    if i % max(1, total//10) == 0 or i == total:
+                        print(f"   Hub analysis progress: {i}/{total}...", end='\r')
+            print()
         else:
-            print("   No networks eligible for community detection (checkpoints or size filters applied)")
+            print("   No hub analyses required (checkpoints or empty networks)")
 
-        print("\n{'='*70}")
-        print(f"✓ Community detection complete for {len(community_results)} periods")
+        print("{'='*70}")
+        print(f"✓ Hub analysis complete for {len(hub_evolution)} periods")
         print("{'='*70}\n")
 
-        return community_results
+        return hub_evolution
+
+    def calculate_stability_metrics(self, community_results, hub_evolution):
+        """
+        Calculate stability metrics between consecutive periods.
+
+        Computes:
+            - hub overlap Jaccard between hub sets
+            - average Jaccard similarity of individual users' community assignments
+
+        Args:
+            community_results (dict): Period -> communities
+            hub_evolution (dict): Period -> hub dicts
+
+        Returns:
+            dict: Mapping 'period1_period2' -> metrics dict
+        """
+        print("\n" + "="*70)
+        print("📊 PHASE 5: STABILITY METRICS")
+        print("="*70 + "\n")
+
+        try:
+            periods = sorted(community_results.keys())
+
+            if len(periods) < 2:
+                print("⚠️  Need at least 2 periods for stability analysis\n")
+                return {}
+
+            stability_metrics = {}
+
+            print(f"Analyzing {len(periods)-1} period transitions:\n")
+
+            for i in range(len(periods) - 1):
+                period1, period2 = periods[i], periods[i+1]
+
+                # Compute hub persistence (Jaccard)
+                hubs1 = set(hub_evolution.get(period1, {}).get('hubs', {}).keys())
+                hubs2 = set(hub_evolution.get(period2, {}).get('hubs', {}).keys())
+
+                hub_overlap = 0
+                if hubs1 and hubs2:
+                    hub_overlap = len(hubs1 & hubs2) / len(hubs1 | hubs2)
+
+                # Community persistence measured by average per-user Jaccard of affiliation sets
+                comm1 = community_results.get(period1, {}).get('communities', {})
+                comm2 = community_results.get(period2, {}).get('communities', {})
+
+                community_similarity = self._calculate_community_similarity(comm1, comm2)
+
+                metrics = {
+                    'hub_overlap': hub_overlap,
+                    'community_similarity': community_similarity,
+                    'transition_period': f"{period1}→{period2}"
+                }
+
+                stability_metrics[f"{period1}_{period2}"] = metrics
+                print(f"   {period1} → {period2}:")
+                print(f"      • Hub overlap: {hub_overlap:.3f}")
+                print(f"      • Community similarity: {community_similarity:.3f}\n")
+
+                print("\n" + "="*70)
+                print("📋 ANALYSIS SUMMARY")
+                print("="*70)
+
+                if stability_metrics:
+                    hub_stabilities = [m['hub_overlap'] for m in stability_metrics.values()]
+                    comm_stabilities = [m['community_similarity'] for m in stability_metrics.values()]
+
+                    print("\n📊 STABILITY METRICS:")
+                    print(f"   • Average hub stability: {np.mean(hub_stabilities):.3f}")
+                    print(f"   • Average community stability: {np.mean(comm_stabilities):.3f}")
+                    print(f"   • Transitions analyzed: {len(stability_metrics)}")
+
+            return stability_metrics
+
+        except Exception as e:
+            print(f"\n✗ Stability calculation failed: {e}\n")
+            return {}
 
     def visualize_network_period(self, period, community_results, hub_evolution,
                                  max_nodes=500, layout='spring', show_labels=True):
@@ -1847,122 +1746,6 @@ class RedditNetworkAnalyzer:
 
         return network, communities, hubs
 
-    def parallel_hub_analysis(self, community_results):
-        """
-        Analyze hubs (high-degree nodes) per period and optionally reuse checkpoints.
-
-        Args:
-            community_results (dict): Output of parallel_community_detection.
-            use_checkpoints (bool): Whether to load/save hub analysis checkpoints.
-
-        Returns:
-            dict: Mapping period -> {'hubs': {user:deg}, 'degrees': {user:deg}}
-        """
-        print("\n" + "="*70)
-        print("⭐ PHASE 4: HUB ANALYSIS")
-        print("="*70 + "\n")
-
-        hub_evolution = {}
-
-        # Prepare hub worker args (skip if checkpoint exists)
-        hub_args = []
-        for period, result in community_results.items():
-            hub_filename = f"hubs_{period}.pkl"
-            if self.use_checkpoints:
-                period_hubs = self.load_checkpoint(hub_filename)
-                if period_hubs is not None:
-                    hub_evolution[period] = period_hubs
-                    continue
-            network = result.get('network', None)
-            if network is None or network.number_of_nodes() == 0:
-                continue
-            hub_args.append((period, network))
-
-        if hub_args:
-            with Pool(self.n_workers) as pool:
-                total = len(hub_args)
-                for i, (period, hubs, degrees) in enumerate(pool.imap_unordered(analyze_hubs_worker, hub_args), 1):
-                    if hubs:
-                        period_hubs = {'hubs': hubs, 'degrees': degrees}
-                        hub_evolution[period] = period_hubs
-                        if self.use_checkpoints:
-                            self.save_checkpoint(period_hubs, f"hubs_{period}.pkl")
-                    if i % max(1, total//10) == 0 or i == total:
-                        print(f"   Hub analysis progress: {i}/{total}...", end='\r')
-            print()
-        else:
-            print("   No hub analyses required (checkpoints or empty networks)")
-
-        print("{'='*70}")
-        print(f"✓ Hub analysis complete for {len(hub_evolution)} periods")
-        print("{'='*70}\n")
-
-        return hub_evolution
-
-    def calculate_stability_metrics(self, community_results, hub_evolution):
-        """
-        Calculate stability metrics between consecutive periods.
-
-        Computes:
-            - hub overlap Jaccard between hub sets
-            - average Jaccard similarity of individual users' community assignments
-
-        Args:
-            community_results (dict): Period -> communities
-            hub_evolution (dict): Period -> hub dicts
-
-        Returns:
-            dict: Mapping 'period1_period2' -> metrics dict
-        """
-        print("\n" + "="*70)
-        print("📊 PHASE 5: STABILITY METRICS")
-        print("="*70 + "\n")
-
-        try:
-            periods = sorted(community_results.keys())
-
-            if len(periods) < 2:
-                print("⚠️  Need at least 2 periods for stability analysis\n")
-                return {}
-
-            stability_metrics = {}
-
-            print(f"Analyzing {len(periods)-1} period transitions:\n")
-
-            for i in range(len(periods) - 1):
-                period1, period2 = periods[i], periods[i+1]
-
-                # Compute hub persistence (Jaccard)
-                hubs1 = set(hub_evolution.get(period1, {}).get('hubs', {}).keys())
-                hubs2 = set(hub_evolution.get(period2, {}).get('hubs', {}).keys())
-
-                hub_overlap = 0
-                if hubs1 and hubs2:
-                    hub_overlap = len(hubs1 & hubs2) / len(hubs1 | hubs2)
-
-                # Community persistence measured by average per-user Jaccard of affiliation sets
-                comm1 = community_results.get(period1, {}).get('communities', {})
-                comm2 = community_results.get(period2, {}).get('communities', {})
-
-                community_similarity = self._calculate_community_similarity(comm1, comm2)
-
-                metrics = {
-                    'hub_overlap': hub_overlap,
-                    'community_similarity': community_similarity,
-                    'transition_period': f"{period1}→{period2}"
-                }
-
-                stability_metrics[f"{period1}_{period2}"] = metrics
-                print(f"   {period1} → {period2}:")
-                print(f"      • Hub overlap: {hub_overlap:.3f}")
-                print(f"      • Community similarity: {community_similarity:.3f}\n")
-
-            return stability_metrics
-
-        except Exception as e:
-            print(f"\n✗ Stability calculation failed: {e}\n")
-            return {}
-
     def _calculate_community_similarity(self, comm1, comm2):
         """
         Compute average Jaccard similarity of community affiliations for users present in both periods.
@@ -2056,35 +1839,6 @@ class RedditNetworkAnalyzer:
         except Exception as e:
             print(f"\n✗ Export failed: {e}\n")
             return False
-
-    def generate_report(self, stability_metrics):
-        """
-        Print a concise textual report of key summary statistics and resource usage.
-
-        Args:
-            stability_metrics (dict): Stability metrics computed earlier.
-        """
-        print("\n" + "="*70)
-        print("📋 ANALYSIS SUMMARY")
-        print("="*70)
-
-        if stability_metrics:
-            hub_stabilities = [m['hub_overlap'] for m in stability_metrics.values()]
-            comm_stabilities = [m['community_similarity'] for m in stability_metrics.values()]
-
-            print("\n📊 STABILITY METRICS:")
-            print(f"   • Average hub stability: {np.mean(hub_stabilities):.3f}")
-            print(f"   • Average community stability: {np.mean(comm_stabilities):.3f}")
-            print(f"   • Transitions analyzed: {len(stability_metrics)}")
-
-        # Resource usage snapshot
-        process = psutil.Process()
-        memory_usage = process.memory_info().rss / 1024 ** 3
-        print("\n💻 RESOURCE USAGE:")
-        print(f"   • Memory: {memory_usage:.2f} GB")
-        print(f"   • CPU cores: {self.n_workers}")
-
-        print("\n" + "="*70 + "\n")
 
     def plot_stability_metrics(self, stability_metrics, output_file='stability_analysis.png'):
         """
@@ -2268,120 +2022,7 @@ class RedditNetworkAnalyzer:
         }
 
 
-def detect_communities_worker(network_tuple):
-    """
-    Worker function for community detection used in possible parallel pipelines.
-
-    Tries BigClam for overlapping communities, otherwise falls back to Louvain.
-
-    Args:
-        network_tuple (tuple): (period, network) pair.
-
-    Returns:
-        tuple: (period, communities_dict, network) where communities_dict maps user -> [community_ids].
-    """
-    period, network = network_tuple
-
-    try:
-        if network.number_of_nodes() < 20:
-            return (period, {}, network)
-
-        # Attempt BigClam first (overlapping communities)
-        try:
-            n_nodes = network.number_of_nodes()
-            dimensions = max(2, min(20, int(np.sqrt(n_nodes) / 5)))
-
-            bigclam = BigClam(
-                dimensions=dimensions,
-                iterations=1000,
-                random_state=42
-            )
-
-            adj_matrix = nx.to_scipy_sparse_array(network)
-            bigclam.fit(adj_matrix)
-
-            memberships = bigclam.get_memberships()
-
-            communities = {}
-            node_list = list(network.nodes())
-            for node_idx, comm_affiliations in enumerate(memberships):
-                if comm_affiliations and len(comm_affiliations) > 0:
-                    node_name = node_list[node_idx]
-                    communities[node_name] = list(comm_affiliations)
-
-            # Validate result for reasonableness
-            if communities:
-                all_comm_ids = set()
-                for affs in communities.values():
-                    all_comm_ids.update(affs)
-
-                n_communities = len(all_comm_ids)
-                overlapping_users = sum(1 for affs in communities.values() if len(affs) > 1)
-
-                if n_communities > 1 and n_communities < len(communities) * 0.8:
-                    logger.info(f"BigCLAM successful for {period}: {n_communities} communities, {overlapping_users} overlapping users")
-                    return (period, communities, network)
-
-        except Exception as e:
-            logger.warning(f"BigCLAM failed for {period}: {e}")
-
-        # Fallback to Louvain if BigClam fails or returns poor results
-        try:
-            weighted_net = network.copy()
-            for u, v, d in weighted_net.edges(data=True):
-                if 'weight' not in d:
-                    d['weight'] = 1.0
-
-            partition = community_louvain.best_partition(weighted_net, weight='weight', random_state=42)
-
-            communities = {}
-            for node, comm_id in partition.items():
-                communities[node] = [comm_id]
-
-            n_communities = len(set(partition.values()))
-            logger.info(f"Louvain fallback for {period}: {n_communities} communities")
-            return (period, communities, network)
-
-        except Exception as e:
-            logger.error(f"All community detection failed for {period}: {e}")
-            return (period, {}, network)
-
-    except Exception as e:
-        logger.error(f"Community detection crashed for {period}: {e}")
-        return (period, {}, network)
-
-
-def analyze_hubs_worker(network_tuple):
-    """
-    Worker function to identify hubs (top percentile by degree) for a period.
-
-    Args:
-        network_tuple (tuple): (period, network)
-
-    Returns:
-        tuple: (period, hubs_dict, degrees_dict)
-               hubs_dict maps user -> degree for users above the 95th percentile.
-               degrees_dict maps user -> degree for all users.
-    """
-    period, network = network_tuple
-
-    try:
-        degrees = dict(network.degree())
-
-        if not degrees:
-            return (period, {}, {})
-
-        # Define hubs as nodes in the top 5% by degree
-        degree_threshold = np.percentile(list(degrees.values()), 95)
-        hubs = {node: deg for node, deg in degrees.items() if deg >= degree_threshold}
-
-        return (period, hubs, degrees)
-
-    except Exception:
-        return (period, {}, {})
-
-
-def estimate_gcc_size_worker(args):
+def _estimate_gcc_size_worker(args):
     """
     Top-level worker for multiprocessing: estimate GCC size for a period.
     Args:
