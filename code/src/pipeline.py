@@ -15,7 +15,7 @@ import logging
 import traceback
 import warnings
 
-import numpy as np
+import networkx as nx
 import matplotlib.pyplot as plt
 import seaborn as sns
 
@@ -54,8 +54,9 @@ def run_analysis(
         use_checkpoints: bool = True,
         checkpoint_dir: str = "./checkpoints",
         reports_dir: str = "./reports",
+        synthetic_network: nx.Graph = None,
         n_workers: int = 1,
-    ) -> tuple:
+    ) -> RedditNetworkAnalyzer:
     """
     Run the full Reddit network analysis pipeline.
 
@@ -84,15 +85,13 @@ def run_analysis(
             checkpoints (default: "./checkpoints").
         reports_dir (str, optional): Directory in which to save the
             reports (default: "./reports").
+        synthetic_network (nx.Graph): If provided, compares the observed
+            network to a synthetic network (default: None).
         n_workers (int, optional): Number of workers to use for parallel
             processing (default: 1).
 
     Returns:
-        tuple: A tuple containing:
-            RedditNetworkAnalyzer: The initialized analyzer instance,
-            dict: the dictionary with the identified communities,
-            dict: the dictionary with the calculated stability metrics,
-            pd.DataFrame: other calculated network metrics
+        RedditNetworkAnalyzer: The initialized analyzer instance.
     """
 
     print(
@@ -105,7 +104,6 @@ def run_analysis(
         f"    • Overlapping community detection enabled: {'Yes (BigClam)' if overlapping_communities else 'No (Louvain)'}",
         f"    • Checkpoints enabled: {'Yes (' + checkpoint_dir + ')' if use_checkpoints else 'No'}",
         f"    • Parallel workers: {n_workers or 'auto'}",
-        "=" * 70,
         sep="\n",
     )
 
@@ -113,6 +111,9 @@ def run_analysis(
 
         analyzer = RedditNetworkAnalyzer(
             data_path=data_path,
+            snapshots_per_year=snapshots_per_year,
+            min_giant_component_size=min_giant_component_size,
+            overlapping_communities=overlapping_communities,
             use_checkpoints=use_checkpoints,
             checkpoint_dir=checkpoint_dir,
             reports_dir=reports_dir,
@@ -122,14 +123,14 @@ def run_analysis(
         # Phase 1: Load raw subreddit data
         analyzer.load_data()
 
-        if analyzer.df_comments is None:
+        if analyzer.df_comments is None or len(analyzer.df_comments) == 0:
             print("Failed to load data!")
-            return analyzer, None, None, None
+            return analyzer
 
-        # Phase 2: Preprocess data
+        # Phase 2: Preprocess subreddit data
         analyzer.preprocess_comments()
 
-        # Phase 3: Build user-user networks for the selected periods
+        # Phase 3: Build user-user interaction networks for the selected periods
         analyzer.create_periodical_snapshots(
             temporal_unit="month",
             min_gcc_size=min_giant_component_size,
@@ -138,30 +139,27 @@ def run_analysis(
 
         if not analyzer.snapshots:
             print("Failed to build networks!")
-            return analyzer, None, None, None
+            return analyzer
 
-        # Phase 4: Perform EDA on each (entire) snapshot
-        analyzer.perform_exploratory_data_analysis()
-        network_metrics_df = analyzer.export_network_metrics()
+        # Phase 4: Detect communities
+        analyzer.detect_communities()
 
-        # Phase 5: Community Detection (optionally overlapping)
-        community_results = analyzer.parallel_community_detection(
-            analyzer.snapshots,
-            use_checkpoints=use_checkpoints,
-            overlapping=overlapping_communities
+        if synthetic_network is not None:
+            analyzer.detect_communities(
+                synthetic=True,
+                synthetic_network=synthetic_network,
+            )
+
+        # Phase 5: Generate descriptive metrics about networks
+        analyzer.run_network_analysis()
+
+        analyzer.export_network_metrics(
+            synthetic=synthetic_network is not None,
+            synthetic_network=synthetic_network,
         )
 
-        if not community_results:
-            print("No communities detected\n")
-            return analyzer, None, None, network_metrics_df
-
-        # Phase 6: Hub Analysis
         hub_evolution = analyzer.parallel_hub_analysis(community_results)
-
-        # Phase 7: Stability Metrics
         stability_metrics = analyzer.calculate_stability_metrics(community_results, hub_evolution)
-
-        # Phase 8: Visualization and Analysis (stability plots)
         if stability_metrics:
             analyzer.plot_stability_metrics(stability_metrics)
 
@@ -169,32 +167,27 @@ def run_analysis(
         analyzer.export_results(community_results, hub_evolution, stability_metrics)
         analyzer.generate_report(stability_metrics)
 
-        print("\n" + "="*70)
-        print("✅ ENHANCED ANALYSIS COMPLETED SUCCESSFULLY!")
-        print("="*70)
-        print("\n📁 Results available in:")
-        print("   • community_memberships.csv")
-        print("   • hub_analysis.csv")
-        print("   • stability_metrics.csv")
-        print("   • network_metrics.csv")
-        print("   • stability_analysis.png")
-        print("   • checkpoints/ (for recovery)")
-        print("\n🎨 Available visualization methods:")
-        print("   • analyzer.visualize_network_period(period, community_results, hub_evolution)")
-        print("   • analyzer.compare_period_transition(period1, period2, community_results, hub_evolution)")
-        print("   • analyzer.plot_stability_metrics(stability_metrics)")
-        print("\n" + "="*70 + "\n")
-
-        return analyzer, community_results, stability_metrics, network_metrics_df
+        print(
+            "=" * 70,
+            "ANALYSIS COMPLETED SUCCESSFULLY",
+            "=" * 70,
+            f"Processed data: {analyzer.checkpoint_dir}",
+            f"Reports: {analyzer.reports_dir}",
+            sep="\n",
+        )
 
     except Exception as e:
-        print(f"\n\n{'='*70}")
-        print("✗ ANALYSIS FAILED")
-        print(f"{'='*70}")
-        print(f"\nError: {e}\n")
+        print(
+            "=" * 70,
+            "ANALYSIS FAILED",
+            "=" * 70,
+            f"Error: {e}",
+            sep="\n",
+        )
         traceback.print_exc()
-        print("\n" + "="*70 + "\n")
-        return analyzer, None, None, None
+
+    finally:
+        return analyzer
 
 
 # Usage example in Jupyter notebook:
