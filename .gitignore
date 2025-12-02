@@ -71,15 +71,12 @@ pip-wheel-metadata/
 *.pt
 *.onnx
 *.model
-*.pkl
 *.joblib
 *.npy
 *.npz
 
 # Raw data files
 Documentaries.corpus
-
-
 
 # Env / Secrets
 .env

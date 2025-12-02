@@ -1,4 +1,3 @@
-"""
 The **BigClam** algorithm is used for **overlapping community detection** in graphs. It uses block coordinate gradient ascent to learn a low-rank, non-negative matrix factorization that represents the strength of a node's affiliation to different communities, maximizing the likelihood of the observed network structure.
 
 Here is a breakdown of its usage based on the provided documentation:
@@ -78,5 +77,3 @@ The `get_memberships` method converts the affiliation strengths into discrete co
 ```python
 memberships = model.get_memberships()
 ```
-"""
-
