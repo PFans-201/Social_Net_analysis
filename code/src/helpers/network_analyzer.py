@@ -759,6 +759,7 @@ class RedditNetworkAnalyzer:
             """Apply BigClam algorithm to detect communities."""
 
             try:
+                n_nodes = network.number_of_nodes()
                 dimensions = max(2, min(20, int(np.sqrt(n_nodes) / 5)))
 
                 bigclam = BigClam(
@@ -927,6 +928,8 @@ class RedditNetworkAnalyzer:
 
         def _calculate_post_stats(period: str):
 
+            print("        Calculating stats based on comments dataframe")
+
             snapshot_period_components = period.split("#")
             yearmonth = snapshot_period_components[0]
             unit = snapshot_period_components[1]
@@ -978,7 +981,7 @@ class RedditNetworkAnalyzer:
 
         def _calculate_network_stats(period: str, network: nx.Graph, community: dict):
 
-            gcc = metrics.get_largest_connected_component(network)
+            print("        Calculating stats based on network")
 
             partition = {}
             for node, lst in community.items():
@@ -997,6 +1000,10 @@ class RedditNetworkAnalyzer:
             _record_stat(period, "Community count", metrics.get_community_count(partition))
             _record_stat(period, "Community modularity", metrics.get_modularity(network, partition))
             _record_stat(period, "Average internal vs external edge ratio", metrics.get_mean_internal_edge_ratio(network, partition))
+
+            print("        Calculating stats based on GCC")
+
+            gcc = metrics.get_largest_connected_component(network)
 
             _record_distribution_stat(f"{period}-GCC", gcc)
             _record_stat(period, "Total node count", metrics.get_node_count(gcc))
