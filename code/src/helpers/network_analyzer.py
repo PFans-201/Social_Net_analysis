@@ -190,14 +190,15 @@ class RedditNetworkAnalyzer:
             object or None: The unpickled object or None if loading failed.
         """
         filepath = os.path.join(self.checkpoint_dir, filename)
-        try:
-            with open(filepath, "rb") as f:
-                data = pickle.load(f)
-            print(f"Loaded checkpoint: {filename}")
-            return data
-        except Exception as e:
-            print(f"Failed to load checkpoint {filename}: {e}")
-            return None
+        if os.path.exists(filepath):
+            try:
+                with open(filepath, "rb") as f:
+                    data = pickle.load(f)
+                print(f"Loaded checkpoint: {filename}")
+                return data
+            except Exception as e:
+                print(f"Failed to load checkpoint {filename}: {e}")
+        return None
 
     def load_data(self) -> tuple:
         """
@@ -680,7 +681,7 @@ class RedditNetworkAnalyzer:
 
             print("Creating snapshots of the network for the selected periods...")
 
-            selected_periods = gcc_stats["period"].unique()
+            selected_periods = periods_to_keep["period"].unique()
             n_selected_periods = len(selected_periods)
 
             # Prepare args for pool workers
@@ -691,14 +692,13 @@ class RedditNetworkAnalyzer:
                 if self.use_checkpoints:
                     snapshot_data = self.load_checkpoint(snapshot_filename)
                     if snapshot_data is not None:
-                        snapshots[period] = {"user_network": snapshot_data[0], "network_stats": snapshot_data[1]}
+                        snapshots[period] = snapshot_data
                         continue
                 snapshot_df = df_comments[df_comments["aux_partition_key"] == period]
                 snapshot_build_args.append((period, snapshot_df, global_comment_map, 1))
 
-            # Create snapshots in parallel using the top-level worker
             if snapshot_build_args:
-                for i, args in enumerate(snapshot_build_args):
+                for i, args in enumerate(snapshot_build_args, 1):
                     period, _, _, _ = args
                     networks = _build_snapshot_network_worker(args)
                     if networks and networks[1] and networks[1].number_of_nodes() > 0:
@@ -935,9 +935,6 @@ class RedditNetworkAnalyzer:
                 (self.df_comments["yearmonth"] == yearmonth)
                 & (self.df_comments[self.temporal_unit] == unit)
             ]
-            aux_df_posts = self.df_posts[
-                (self.df_posts["datetime"].dt.strftime("%Y-%m") == yearmonth)
-            ]
 
             # Basic statistics summary
 
@@ -971,12 +968,6 @@ class RedditNetworkAnalyzer:
                 _record_stat(period, "Average user reply counts", reply_counts["count"].mean())
                 _record_stat(period, "Maximum user reply counts", reply_counts["count"].max())
 
-            self._create_temporal_plots(aux_df_posts, aux_df_comments)
-            self._analyze_user_activity(aux_df_comments)
-            self._analyze_post_engagement(aux_df_posts, aux_df_comments)
-            self._analyze_reply_network(aux_df_comments)
-            self._analyze_sentiment(aux_df_comments)
-
             user_post_counts = aux_df_comments.groupby("user")["root"].nunique()
             post_user_counts = aux_df_comments.groupby("root")["user"].nunique()
 
@@ -1005,6 +996,7 @@ class RedditNetworkAnalyzer:
             _record_stat(period, "Assortativity", metrics.get_assortativity(network))
             _record_stat(period, "Community count", metrics.get_community_count(partition))
             _record_stat(period, "Community modularity", metrics.get_modularity(network, partition))
+            _record_stat(period, "Average internal vs external edge ratio", metrics.get_mean_internal_edge_ratio(network, partition))
 
             _record_distribution_stat(f"{period}-GCC", gcc)
             _record_stat(period, "Total node count", metrics.get_node_count(gcc))
@@ -1040,6 +1032,12 @@ class RedditNetworkAnalyzer:
 
             _calculate_network_stats(period, network, communities[period])
 
+            # self._create_temporal_plots(aux_df_posts, aux_df_comments)
+            # self._analyze_user_activity(aux_df_comments)
+            # self._analyze_post_engagement(aux_df_posts, aux_df_comments)
+            # self._analyze_reply_network(aux_df_comments)
+            # self._analyze_sentiment(aux_df_comments)
+
         if self.use_checkpoints:
             self.save_checkpoint((numeric_metrics, distribution_metrics), self.metrics_filename)
 
@@ -1053,105 +1051,7 @@ class RedditNetworkAnalyzer:
 
         return numeric_metrics, distribution_metrics
 
-    def export_network_metrics(self):
-        """
-        Export detailed network metrics (on the GCC) for each period into a CSV.
-
-        Args:
-            snapshots (dict): Mapping period -> network dict created earlier.
-            output_file (str): Filename for the CSV export.
-
-        Returns:
-            pd.DataFrame or None: DataFrame with exported metrics if any, otherwise None.
-        """
-        # TODO REWRITE THIS FUNCTION TO GET ALL METRICS (FOR THE WHOLE NETWORK AND GCC,
-        # be sure to get as much metrics as possible)
-        snapshots = self.snapshots
-
-        network_metrics = []
-        for period, networks in snapshots.items():
-            stats = dict(networks.get('network_stats', {}))
-            stats['period'] = period
-
-            # Include directed network stats when available
-            directed_net = networks.get('directed_reply_network')
-            if directed_net and directed_net.number_of_nodes() > 0:
-                stats['directed_nodes'] = directed_net.number_of_nodes()
-                stats['directed_edges'] = directed_net.number_of_edges()
-                stats['reciprocity'] = directed_net.graph.get('reciprocity', 0)
-
-            # GCC metrics on undirected user network
-            user_net = networks.get('user_network')
-            if user_net and user_net.number_of_nodes() > 0 and user_net.number_of_edges() > 0:
-                try:
-                    gcc_nodes = max(nx.connected_components(user_net), key=len)
-                    gcc = user_net.subgraph(gcc_nodes).copy()
-                    stats['gcc_nodes'] = gcc.number_of_nodes()
-                    stats['gcc_edges'] = gcc.number_of_edges()
-                    stats['gcc_density'] = nx.density(gcc)
-
-                    degs = [d for _, d in gcc.degree()]
-                    stats['gcc_avg_degree'] = float(np.mean(degs)) if degs else 0.0
-                    stats['gcc_median_degree'] = float(np.median(degs)) if degs else 0.0
-                    stats['gcc_max_degree'] = int(max(degs)) if degs else 0
-                    stats['gcc_min_degree'] = int(min(degs)) if degs else 0
-                    stats['gcc_degree_std'] = float(np.std(degs)) if degs else 0.0
-
-                    stats['gcc_avg_clustering'] = nx.average_clustering(gcc) if gcc.number_of_nodes() > 1 else 0.0
-                    stats['gcc_transitivity'] = nx.transitivity(gcc) if gcc.number_of_nodes() > 2 else 0.0
-
-                    # TODO REMOVE IF IT WORKS FOR THE WHOLE NETWORK
-                    # Path metrics (sampled for large graphs)
-                    if gcc.number_of_nodes() > 1000:
-                        rng = np.random.default_rng(42)
-                        sample = min(1000, gcc.number_of_nodes())
-                        sampled_nodes = rng.choice(list(gcc.nodes()), size=sample, replace=False)
-                        # This is compulationally expensive to calculate with 10k+ nodes in a network
-                        pairs = itertools.islice(itertools.combinations(sampled_nodes, 2), 5000)
-                        dists = []
-                        for u, v in pairs:
-                            try:
-                                dists.append(nx.shortest_path_length(gcc, u, v))
-                            except Exception:
-                                continue
-                        if dists:
-                            stats['gcc_avg_path_length'] = float(np.mean(dists))
-                            stats['gcc_diameter_estimate'] = int(max(dists))
-                        stats['gcc_is_sampled'] = True
-                    else:
-                        stats['gcc_avg_path_length'] = nx.average_shortest_path_length(gcc)
-                        stats['gcc_diameter'] = nx.diameter(gcc)
-                        stats['gcc_is_sampled'] = False
-
-                    # Centralization proxies and assortativity
-                    dc = nx.degree_centrality(gcc)
-                    stats['gcc_degree_centralization'] = float(max(dc.values())) if dc else 0.0
-                    bc = nx.betweenness_centrality(gcc, k=min(500, gcc.number_of_nodes()))
-                    stats['gcc_betweenness_centralization'] = float(max(bc.values())) if bc else 0.0
-                    stats['gcc_assortativity'] = float(nx.degree_assortativity_coefficient(gcc)) if gcc.number_of_nodes() > 1 else 0.0
-                    stats['gcc_edge_density'] = (2 * gcc.number_of_edges()) / (gcc.number_of_nodes() * (gcc.number_of_nodes() - 1)) if gcc.number_of_nodes() > 1 else 0.0
-
-                    # Community summary via Louvain on GCC
-                    part = community_louvain.best_partition(gcc, weight='weight')
-                    stats['gcc_num_communities'] = int(len(set(part.values())))
-                    stats['gcc_modularity'] = float(community_louvain.modularity(part, gcc))
-                except Exception as e:
-                    logger.warning(f"GCC metric calculation failed for {period}: {e}")
-
-            network_metrics.append(stats)
-
-        if network_metrics:
-            network_report_output_path = os.path.join(self.reports_dir, self.network_metrics_filename)
-            df_metrics = pd.DataFrame(network_metrics)
-            cols = ['period'] + [c for c in df_metrics.columns if c != 'period']
-            df_metrics = df_metrics[cols]
-            df_metrics.to_csv(network_report_output_path, index=False)
-            print(f"Exported report to '{network_report_output_path}'")
-
-        else:
-            print("No network metrics to export")
-
-        return df_metrics
+################
 
     def _create_temporal_plots(self, df_posts, df_comments):
         """
@@ -1370,194 +1270,9 @@ class RedditNetworkAnalyzer:
         plt.savefig('eda_plots/sentiment_distribution.png', dpi=300, bbox_inches='tight')
         plt.show()
 
-    def _analyze_reply_network(self, df_comments):
-        """
-        Produce diagnostics about potential reply network structure and produce plots.
-
-        Args:
-            df_comments (pd.DataFrame): Comments DataFrame with 'id', 'user', 'reply_to'.
-        """
-        print("\n🔗 REPLY NETWORK ANALYSIS:")
-
-        # Use global map if available, otherwise create period-specific map
-        comment_to_user = getattr(self, 'global_comment_map', None) or df_comments.set_index('id')['user']
-
-        # Filter replies and map to target users
-        df_replies = df_comments[df_comments['reply_to'].notna()].copy()
-        df_replies['reply_to_user'] = df_replies['reply_to'].map(comment_to_user)
-
-        # Keep only valid user-to-user replies
-        valid_replies = df_replies[
-            (df_replies['reply_to_user'].notna()) &
-            (df_replies['reply_to_user'] != '[deleted]') &
-            (df_replies['user'] != df_replies['reply_to_user'])  # Remove self-replies
-        ]
-
-        if len(valid_replies) == 0:
-            print("  No valid reply data found")
-            return
-
-        # Summarize reply pairs and degree info
-        reply_pairs = valid_replies.groupby(['user', 'reply_to_user']).size().reset_index(name='weight')
-
-        print(f"  Total reply interactions: {len(valid_replies):,}")
-        print(f"  Unique user pairs with replies: {len(reply_pairs):,}")
-        print(f"  Average replies per pair: {reply_pairs['weight'].mean():.2f}")
-        print(f"  Most active reply pair: {reply_pairs.loc[reply_pairs['weight'].idxmax()].to_dict()}")
-
-        # Out/in degree proxy using aggregated weights
-        out_degree = reply_pairs.groupby('user')['weight'].sum()
-        in_degree = reply_pairs.groupby('reply_to_user')['weight'].sum()
-
-        print(f"  Users who sent replies: {len(out_degree):,}")
-        print(f"  Users who received replies: {len(in_degree):,}")
-        print(f"  Average replies sent per user: {out_degree.mean():.2f}")
-        print(f"  Average replies received per user: {in_degree.mean():.2f}")
-
-        # Visualize reply network diagnostics
-        self._create_reply_network_plots(reply_pairs, out_degree, in_degree)
-
-    def _create_reply_network_plots(self, reply_pairs, out_degree, in_degree):
-        """
-        Create a set of plots summarizing reply pair weights and degree distributions.
-
-        Args:
-            reply_pairs (pd.DataFrame): DataFrame with columns ['user', 'reply_to_user', 'weight'].
-            out_degree (pd.Series): Aggregated replies sent per user.
-            in_degree (pd.Series): Aggregated replies received per user.
-        """
-        _, axes = plt.subplots(2, 2, figsize=(15, 10))
-
-        # Distribution of pair weights (log frequency)
-        weights = reply_pairs['weight'].values
-        axes[0, 0].hist(weights, bins=50, alpha=0.7, color='skyblue', edgecolor='black', log=True)
-        axes[0, 0].set_title('Distribution of Reply Interactions per Pair')
-        axes[0, 0].set_xlabel('Number of Replies between Pair')
-        axes[0, 0].set_ylabel('Frequency (log)')
-
-        # Top users by replies sent
-        out_degree_sorted = out_degree.sort_values(ascending=False).head(20)
-        axes[0, 1].bar(range(len(out_degree_sorted)), out_degree_sorted.values, color='coral')
-        axes[0, 1].set_title('Top 20 Users by Replies Sent (k_out)')
-        axes[0, 1].set_xlabel('User Rank')
-        axes[0, 1].set_ylabel('Replies Sent')
-        axes[0, 1].tick_params(axis='x', rotation=45)
-
-        # Top users by replies received
-        in_degree_sorted = in_degree.sort_values(ascending=False).head(20)
-        axes[1, 0].bar(range(len(in_degree_sorted)), in_degree_sorted.values, color='lightgreen')
-        axes[1, 0].set_title('Top 20 Users by Replies Received')
-        axes[1, 0].set_xlabel('User Rank')
-        axes[1, 0].set_ylabel('Replies Received')
-        axes[1, 0].tick_params(axis='x', rotation=45)
-
-        # Reciprocity pie chart: how many pairs are bidirectional
-        if len(reply_pairs) > 0:
-            pair_set = set(zip(reply_pairs['user'], reply_pairs['reply_to_user']))
-            reverse_pair_set = {(b, a) for (a, b) in pair_set}
-
-            bidirectional_pairs = pair_set & reverse_pair_set
-
-            reciprocity = len(bidirectional_pairs) / len(pair_set) if len(pair_set) > 0 else 0
-
-            labels = ['One-way', 'Bidirectional']
-            sizes = [len(pair_set) - len(bidirectional_pairs), len(bidirectional_pairs)]
-            colors = ['lightcoral', 'gold']
-
-            axes[1, 1].pie(sizes, labels=labels, colors=colors, autopct='%1.1f%%', startangle=90)
-            axes[1, 1].set_title(f'Reply Reciprocity\n({reciprocity*100:.1f}% bidirectional)')
-
-        plt.tight_layout()
-        plt.savefig('eda_plots/reply_network_analysis.png', dpi=300, bbox_inches='tight')
-        plt.show()
-
-    def parallel_hub_analysis(self, community_results):
-        """
-        Analyze hubs (high-degree nodes) per period and optionally reuse checkpoints.
-
-        Args:
-            community_results (dict): Output of parallel_community_detection.
-            use_checkpoints (bool): Whether to load/save hub analysis checkpoints.
-
-        Returns:
-            dict: Mapping period -> {'hubs': {user:deg}, 'degrees': {user:deg}}
-        """
-
-        def _analyze_hubs_worker(network_tuple):
-            """
-            Worker function to identify hubs (top percentile by degree) for a period.
-
-            Args:
-                network_tuple (tuple): (period, network)
-
-            Returns:
-                tuple: (period, hubs_dict, degrees_dict)
-                    hubs_dict maps user -> degree for users above the 95th percentile.
-                    degrees_dict maps user -> degree for all users.
-            """
-            period, network = network_tuple
-
-            try:
-                degrees = dict(network.degree())
-
-                if not degrees:
-                    return (period, {}, {})
-
-                # Define hubs as nodes in the top 5% by degree
-                degree_threshold = np.percentile(list(degrees.values()), 95)
-                hubs = {node: deg for node, deg in degrees.items() if deg >= degree_threshold}
-
-                return (period, hubs, degrees)
-
-            except Exception:
-                return (period, {}, {})
-
-        # TODO: ratio of number of in-edges > number of out-edges
-
-        print("\n" + "="*70)
-        print("⭐ PHASE 4: HUB ANALYSIS")
-        print("="*70 + "\n")
-
-        hub_evolution = {}
-
-        # Prepare hub worker args (skip if checkpoint exists)
-        hub_args = []
-        for period, result in community_results.items():
-            hub_filename = f"hubs_{period}.pkl"
-            if self.use_checkpoints:
-                period_hubs = self.load_checkpoint(hub_filename)
-                if period_hubs is not None:
-                    hub_evolution[period] = period_hubs
-                    continue
-            network = result.get('network', None)
-            if network is None or network.number_of_nodes() == 0:
-                continue
-            hub_args.append((period, network))
-
-        if hub_args:
-            with Pool(self.n_workers) as pool:
-                total = len(hub_args)
-                for i, (period, hubs, degrees) in enumerate(pool.imap_unordered(_analyze_hubs_worker, hub_args), 1):
-                    if hubs:
-                        period_hubs = {'hubs': hubs, 'degrees': degrees}
-                        hub_evolution[period] = period_hubs
-                        if self.use_checkpoints:
-                            self.save_checkpoint(period_hubs, f"hubs_{period}.pkl")
-                    if i % max(1, total//10) == 0 or i == total:
-                        print(f"   Hub analysis progress: {i}/{total}...", end='\r')
-            print()
-        else:
-            print("   No hub analyses required (checkpoints or empty networks)")
-
-        print("{'='*70}")
-        print(f"✓ Hub analysis complete for {len(hub_evolution)} periods")
-        print("{'='*70}\n")
-
-        return hub_evolution
-
     def calculate_stability_metrics(self, community_results, hub_evolution):
         """
-        Calculate stability metrics between consecutive periods.
+        Calculate stability metrics in relation to a reference network.
 
         Computes:
             - hub overlap Jaccard between hub sets
@@ -1755,34 +1470,6 @@ class RedditNetworkAnalyzer:
         plt.show()
 
         return network, communities, hubs
-
-    def _calculate_community_similarity(self, comm1, comm2):
-        """
-        Compute average Jaccard similarity of community affiliations for users present in both periods.
-
-        Args:
-            comm1 (dict): user -> [community_ids] for period1.
-            comm2 (dict): user -> [community_ids] for period2.
-
-        Returns:
-            float: Mean Jaccard similarity across common users (0..1).
-        """
-        if not comm1 or not comm2:
-            return 0
-
-        common_users = set(comm1.keys()) & set(comm2.keys())
-        if not common_users:
-            return 0
-
-        similarities = []
-        for user in common_users:
-            aff1 = set(comm1[user])
-            aff2 = set(comm2[user])
-            if aff1 or aff2:
-                jaccard = len(aff1 & aff2) / len(aff1 | aff2)
-                similarities.append(jaccard)
-
-        return np.mean(similarities) if similarities else 0
 
     def export_results(self, community_results, hub_evolution, stability_metrics):
         """
