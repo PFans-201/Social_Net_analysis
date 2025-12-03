@@ -57,4 +57,63 @@ def get_community_count(partition: list[set]):
 
 
 def get_modularity(G: nx.Graph, partition: list[set]):
-    return nx.community.quality.modularity(G, partition)
+    if len(partition) > 0:
+        return nx.community.quality.modularity(G, partition)
+    else:
+        return -1
+
+
+def get_mean_internal_edge_ratio(G: nx.Graph, partition: list[set]):
+    ratios = []
+    for community in partition:
+        node_list = set(community)
+        internal_edges = 0
+        external_edges = 0
+        for u in node_list:
+            for v in G.neighbors(u):
+                if v in node_list:
+                    internal_edges += 1
+                else:
+                    external_edges += 1
+
+        # internal edges were counted twice (u->v and v->u)
+        internal_edges //= 2
+
+        ratio = internal_edges / external_edges if external_edges > 0 else 1
+        ratios.append(ratio)
+
+    return sum(ratios) / len(ratios) if ratios else 0
+
+
+def get_mean_jaccard_community_similarity(reference: dict, current_data: dict):
+    """
+    Compute average Jaccard similarity of community affiliations
+    for users present in both current and reference networks.
+
+    Args:
+        reference (dict): Dictionary linking users to community IDs
+            according to their affiliations in the reference network.
+        current_data (dict): Dictionary linking users to community IDs
+            according to their affiliations in the current network.
+
+    Returns:
+        float: Mean Jaccard similarity across common users (0..1).
+    """
+    if not reference or not current_data:
+        return 0
+
+    common_users = set(reference.keys()) & set(current_data.keys())
+    if len(common_users) == 0:
+        return 0
+
+    similarities = []
+    for user in common_users:
+        ref_affiliations = set(reference[user])
+        cur_affiliations = set(current_data[user])
+        if ref_affiliations or cur_affiliations:
+            intersection = ref_affiliations & cur_affiliations
+            union = ref_affiliations | cur_affiliations
+            jaccard = len(intersection) / len(union)
+            similarities.append(jaccard)
+
+    return np.mean(similarities) if similarities else 0

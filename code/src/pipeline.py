@@ -164,14 +164,14 @@ def run_analysis(
                 synthetic_network_name=synthetic_network_name,
             )
 
-        hub_evolution = analyzer.parallel_hub_analysis(community_results)
-        stability_metrics = analyzer.calculate_stability_metrics(community_results, hub_evolution)
-        if stability_metrics:
-            analyzer.plot_stability_metrics(stability_metrics)
+        # hub_evolution = analyzer.parallel_hub_analysis(community_results)
+        # stability_metrics = analyzer.calculate_stability_metrics(community_results, hub_evolution)
+        # if stability_metrics:
+        #     analyzer.plot_stability_metrics(stability_metrics)
 
-        # Export final results and generate report
-        analyzer.export_results(community_results, hub_evolution, stability_metrics)
-        analyzer.generate_report(stability_metrics)
+        # # Export final results and generate report
+        # analyzer.export_results(community_results, hub_evolution, stability_metrics)
+        # analyzer.generate_report(stability_metrics)
 
         print(
             "=" * 70,
