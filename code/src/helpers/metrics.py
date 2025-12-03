@@ -107,9 +107,11 @@ def get_mean_jaccard_community_similarity(reference: dict, current_data: dict):
         return 0
 
     similarities = []
+
     for user in common_users:
         ref_affiliations = set(reference[user])
         cur_affiliations = set(current_data[user])
+
         if ref_affiliations or cur_affiliations:
             intersection = ref_affiliations & cur_affiliations
             union = ref_affiliations | cur_affiliations
@@ -117,3 +119,47 @@ def get_mean_jaccard_community_similarity(reference: dict, current_data: dict):
             similarities.append(jaccard)
 
     return np.mean(similarities) if similarities else 0
+
+
+def get_community_entry_counts(reference: dict, current_data: dict):
+    """
+    Compute number of new users in a community by comparison with
+    a reference network.
+
+    Args:
+        reference (dict): Dictionary linking users to community IDs
+            according to their affiliations in the reference network.
+        current_data (dict): Dictionary linking users to community IDs
+            according to their affiliations in the current network.
+
+    Returns:
+        int: Number of users present in the current data that were not
+            in the reference data.
+    """
+    if not reference or not current_data:
+        return 0
+
+    new_users = set(current_data.keys()) - set(reference.keys())
+    return len(new_users)
+
+
+def get_community_exit_counts(reference: dict, current_data: dict):
+    """
+    Compute number of users who left a community by comparison with
+    a reference network.
+
+    Args:
+        reference (dict): Dictionary linking users to community IDs
+            according to their affiliations in the reference network.
+        current_data (dict): Dictionary linking users to community IDs
+            according to their affiliations in the current network.
+
+    Returns:
+        int: Number of users present in the current data that were not
+            in the reference data.
+    """
+    if not reference or not current_data:
+        return 0
+
+    former_users = set(reference.keys()) - set(current_data.keys())
+    return len(former_users)
