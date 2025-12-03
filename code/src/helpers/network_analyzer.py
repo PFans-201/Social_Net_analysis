@@ -30,6 +30,7 @@ import pandas as pd
 import seaborn as sns
 from karateclub import BigClam
 
+from src.helpers import metrics
 from src.helpers import sentiment_analysis
 from src.helpers import threading
 
@@ -121,10 +122,7 @@ class RedditNetworkAnalyzer:
         self.checkpoint_loading_step = "full_data_raw.pkl"
         self.checkpoint_preprocessing_step = "full_data_preprocessed.pkl"
         self.community_memberships_filename = "community_memberships.pkl"
-        self.general_metrics_filename = "general_metrics.csv"
-        self.network_metrics_filename = "network_metrics.csv"
-        self.stability_metrics_filename = "stability_metrics.csv"
-        self.community_metrics_filename = "community_metrics.csv"
+        self.metrics_filename = "metrics.pkl"
 
         # To be set in `load_data`
         self.global_comment_map = None
@@ -138,6 +136,10 @@ class RedditNetworkAnalyzer:
         # To be set in `detect_communities`
         self.detected_communities = None
         self.detected_communities_synthetic_data = None
+
+        # To be set in `run_network_analysis`
+        self.numeric_metrics = {"network": [], "metric_name": [], "metric_value": []}
+        self.distribution_metrics = {}
 
         # Default to all but one CPU to leave system responsive
         self.n_workers = n_workers or max(1, cpu_count() - 1)
@@ -562,10 +564,7 @@ class RedditNetworkAnalyzer:
 
             try:
                 if period_df is None or len(period_df) == 0:
-                    return period, {
-                        "user_network": nx.Graph(),
-                        "network_stats": {"gcc_size": 0, "nodes": 0, "edges": 0},
-                    }
+                    return period, nx.Graph()
 
                 # Map comment ids to users (prefer global map if provided)
                 if global_comment_map is not None:
@@ -585,10 +584,7 @@ class RedditNetworkAnalyzer:
                 ]
 
                 if valid_replies.empty:
-                    return period, {
-                        "user_network": nx.Graph(),
-                        "network_stats": {"gcc_size": 0, "nodes": 0, "edges": 0},
-                    }
+                    return period, nx.Graph()
 
                 # Build undirected user network by aggregating directed weights
                 U = nx.Graph()
@@ -612,27 +608,11 @@ class RedditNetworkAnalyzer:
                         else:
                             U.add_edge(source, target, weight=data["count"])
 
-                # Compute gcc size
-                if U.number_of_nodes() == 0:
-                    gcc_size = 0
-                else:
-                    try:
-                        gcc_size = len(max(nx.connected_components(U), key=len))
-                    except Exception:
-                        gcc_size = 0
-
-                return period, {
-                    'user_network': U,
-                    'network_stats': {
-                        "gcc_size": int(gcc_size),
-                        "nodes": U.number_of_nodes(),
-                        "edges": U.number_of_edges()
-                    },
-                }
+                return period, U
 
             except Exception as e:
                 logger.error(f"build_period_network_worker failed for {period}: {e}", exc_info=True)
-                return period, {}
+                return period, nx.Graph()
 
         self.temporal_unit = temporal_unit
         max_date = 12 if temporal_unit == "month" else 52  # assume "weeks" otherwise
@@ -721,7 +701,7 @@ class RedditNetworkAnalyzer:
                 for i, args in enumerate(snapshot_build_args):
                     period, _, _, _ = args
                     networks = _build_snapshot_network_worker(args)
-                    if networks and networks[1].get("user_network") and networks[1]["user_network"].number_of_nodes() > 0:
+                    if networks and networks[1] and networks[1].number_of_nodes() > 0:
                         snapshots[period] = networks[1]
                     # lightweight progress
                     if i % max(1, n_selected_periods // 10) == 0 or i == n_selected_periods:
@@ -749,7 +729,8 @@ class RedditNetworkAnalyzer:
             self,
             synthetic: bool = False,
             synthetic_network: nx.Graph = None,
-            min_admissible_nodes: int = 20
+            synthetic_network_name: str = "synthetic_network",
+            min_admissible_nodes: int = 20,
         ) -> dict:
         """
         Detect communities in the networks. Supports overlapping detection with BigClam
@@ -763,7 +744,10 @@ class RedditNetworkAnalyzer:
             synthetic (bool, optional): If True, apply community detection algorithms
                 to the synthetic network provided; otherwise, apply them to the observed
                 snapshots (default: False).
-            synthetic_network (nx.Graph, optional): A synthetic undirected network (default: None).
+            synthetic_network (nx.Graph, optional): A synthetic undirected network
+                (default: None).
+            synthetic_network_name (str, optional): Name to assign to the synthetic network
+                (default: 'synthetic_network').
             min_admissible_nodes (int, optional): Minimum number of nodes that the network
                 must contain in order to apply a community detection algorithm (default: 20).
 
@@ -854,11 +838,11 @@ class RedditNetworkAnalyzer:
             "COMMUNITY DETECTION",
             "=" * 70,
             f"Detection mode: {'Overlapping communities (BigClam)' if self.overlapping_communities else 'Non-overlapping communities (Louvain)'}",
-            f"Target: {'Synthetic network' if synthetic else 'Observed network'}",
+            f"Target: {'Synthetic network ' + synthetic_network_name if synthetic else 'Observed network'}",
             sep="\n",
         )
 
-        snapshots = {"synthetic_network": synthetic_network} if synthetic else self.snapshots
+        snapshots = {synthetic_network_name: synthetic_network} if synthetic else self.snapshots
         detection_function = _detect_overlapping_communities if self.overlapping_communities else _detect_non_overlapping_communities
 
         results = {}
@@ -869,8 +853,7 @@ class RedditNetworkAnalyzer:
 
         for period, network in snapshots.items():
 
-            user_network = network.get("user_network")
-            n_nodes = user_network.number_of_nodes()
+            n_nodes = network.number_of_nodes()
 
             if n_nodes < min_admissible_nodes:
                 print(f"Network {period} does not have the minimum required number of nodes. Skipping community detection!")
@@ -881,11 +864,11 @@ class RedditNetworkAnalyzer:
                 print(f"Using checkpoint data for network {period}. Skipping community detection!")
                 continue
 
-            if user_network is None:
+            if network is None:
                 print(f"No data for {period}!")
                 continue
 
-            results[period] = detection_function(period, user_network)
+            results[period] = detection_function(period, network)
 
         if synthetic:
             self.detected_communities_synthetic_data = results
@@ -897,33 +880,52 @@ class RedditNetworkAnalyzer:
 
         return results
 
-    ############
-
-    def run_network_analysis(self):
+    def run_network_analysis(
+            self,
+            synthetic: bool = False,
+            synthetic_network: nx.Graph = None,
+            synthetic_network_name: str = "synthetic_network",
+        ) -> tuple:
         """
-        Perform exploratory data analysis and produce diagnostic plots
-        for each produced snapshot of the network. This includes calculating
-        basic statistics, reply analysis, temporal plots, user activity,
-        post engagement, sentiment analysis, and other network metrics.
+        Analyse and produce relevant metrics for the network snapshots
+        and provided synthetic networks.
+
+        If a synthetic network is provided, it will calculate metrics
+        for that network. Otherwise, use the snapshots previously generated.
+        Outputs are saved to the respective class attribute.
+
+        Args:
+            synthetic (bool, optional): If True, use the synthetic network provided;
+                otherwise, use the observed snapshots (default: False).
+            synthetic_network (nx.Graph, optional): A synthetic undirected network
+                (default: None).
+            synthetic_network_name (str, optional): Name to assign to the synthetic
+                network (default: 'synthetic_network').
+            min_admissible_nodes (int, optional): Minimum number of nodes that the network
+                must contain in order to apply a community detection algorithm (default: 20).
 
         Returns:
-            dict: Dictionary mapping snapshot dates to pandas dataframes
+            tuple: Dictionary mapping snapshot dates to pandas dataframes
                 containing descriptive metrics calculated for the network
                 as observed in the respective time period.
         """
 
-        def _record_stat(period: str, metric_name: str, metric_value: float):
-            general_stats["period"].append(period)
-            general_stats["metric_name"].append(metric_name)
-            general_stats["metric_value"].append(metric_value)
+        def _record_stat(name: str, metric_name: str, metric_value: float):
+            """Utility function to add a row to the numeric metrics table."""
+            numeric_metrics["network"].append(name)
+            numeric_metrics["metric_name"].append(metric_name)
+            numeric_metrics["metric_value"].append(metric_value)
 
-        print("Calculating network metrics...")
-        general_stats = {"period": [], "metric_name": [], "metric_value": []}
+        def _record_distribution_stat(name: str, network: nx.Graph):
+            """Utility function to add data to the distribution metrics dictionary."""
+            distribution_metrics[name] = {
+                "degrees": metrics.get_node_degrees_distribution(network),
+                "connected_component_sizes": metrics.get_connected_component_size_distribution(network),
+                "clustering_coefficient": metrics.get_clustering_coefficient_distribution(network),
+                "betweenness_centrality": metrics.get_betweenness_centrality_distribution(network),
+            }
 
-        # Save simple network-level metrics
-        for period, networks in self.snapshots.items():
-
-            print(f"    Processing period {period}")
+        def _calculate_post_stats(period: str):
 
             snapshot_period_components = period.split("#")
             yearmonth = snapshot_period_components[0]
@@ -939,40 +941,18 @@ class RedditNetworkAnalyzer:
 
             # Basic statistics summary
 
-            _record_stat(
-                period=period,
-                metric_name="Total comment count",
-                metric_value=len(aux_df_comments),
-            )
-            _record_stat(
-                period=period,
-                metric_name="Unique users",
-                metric_value=aux_df_comments["user"].nunique(),
-            )
-            _record_stat(
-                period=period,
-                metric_name="Unique posts with comments",
-                metric_value=aux_df_comments["root"].nunique(),
-            )
-            _record_stat(
-                period=period,
-                metric_name="Total comments without text",
-                metric_value=len(aux_df_comments[aux_df_comments["text"].isna() | (aux_df_comments["text"] == "")]),
-            )
+            _record_stat(period, "Total comment count", len(aux_df_comments))
+            _record_stat(period, "Unique users", aux_df_comments["user"].nunique())
+            _record_stat(period, "Unique posts with comments", aux_df_comments["root"].nunique())
+            _record_stat(period, "Total comments without text", len(aux_df_comments[aux_df_comments["text"].isna() | (aux_df_comments["text"] == "")]))
 
             # Filter out empty texts for the rest of this analysis
-            aux_df_comments_copy = aux_df_comments[
-                ~aux_df_comments["text"].isna()
-                & (aux_df_comments["text"] != "")
-            ].copy()
+            aux_df_comments_copy = aux_df_comments[~aux_df_comments["text"].isna() & (aux_df_comments["text"] != "")].copy()
 
             # Reply analysis to understand pairwise interactions
             df_comments_with_replies = aux_df_comments_copy[aux_df_comments_copy["reply_to"].notna()]
-            _record_stat(
-                period=period,
-                metric_name="Total comments that are replies",
-                metric_value=len(df_comments_with_replies),
-            )
+
+            _record_stat(period, "Total comments that are replies", len(df_comments_with_replies))
 
             # Build mapping from comment id to user to analyze reply chains
             if len(df_comments_with_replies) > 0:
@@ -982,29 +962,14 @@ class RedditNetworkAnalyzer:
                 valid_replies = valid_replies[valid_replies["reply_to_user"] != "[deleted]"]
                 valid_replies = valid_replies[valid_replies["user"] != valid_replies["reply_to_user"]]  # Remove self-replies
 
-                _record_stat(
-                    period=period,
-                    metric_name="Valid user to user replies",
-                    metric_value=len(valid_replies),
-                )
-                _record_stat(
-                    period=period,
-                    metric_name="Unique user to user reply pairs",
-                    metric_value=valid_replies[["user", "reply_to_user"]].drop_duplicates().shape[0],
-                )
+                _record_stat(period, "Valid user to user replies", len(valid_replies))
+                _record_stat(period, "Unique user to user reply pairs", valid_replies[["user", "reply_to_user"]].drop_duplicates().shape[0])
 
                 # Reply pattern statistics
                 reply_counts = valid_replies.groupby(["user", "reply_to_user"]).size().reset_index(name="count")
-                _record_stat(
-                    period=period,
-                    metric_name="Average user reply counts",
-                    metric_value=reply_counts["count"].mean(),
-                )
-                _record_stat(
-                    period=period,
-                    metric_name="Maximum user reply counts",
-                    metric_value=reply_counts["count"].max(),
-                )
+
+                _record_stat(period, "Average user reply counts", reply_counts["count"].mean())
+                _record_stat(period, "Maximum user reply counts", reply_counts["count"].max())
 
             self._create_temporal_plots(aux_df_posts, aux_df_comments)
             self._analyze_user_activity(aux_df_comments)
@@ -1015,33 +980,78 @@ class RedditNetworkAnalyzer:
             user_post_counts = aux_df_comments.groupby("user")["root"].nunique()
             post_user_counts = aux_df_comments.groupby("root")["user"].nunique()
 
-            _record_stat(
-                period=period,
-                metric_name="Median posts per user",
-                metric_value=np.median(user_post_counts),
-            )
-            _record_stat(
-                period=period,
-                metric_name="Median users per post",
-                metric_value=np.median(post_user_counts),
-            )
-            _record_stat(
-                period=period,
-                metric_name="Percentage of users commenting on multiple posts",
-                metric_value=(user_post_counts > 1).sum() * 100 / user_post_counts.sum(),
-            )
-            _record_stat(
-                period=period,
-                metric_name="Percentage of posts with multiple users commenting",
-                metric_value=(post_user_counts > 1).sum() * 100 / post_user_counts.sum(),
-            )
+            _record_stat(period, "Median posts per user", np.median(user_post_counts))
+            _record_stat(period, "Median users per post", np.median(post_user_counts))
+            _record_stat(period, "Ratio of users commenting on multiple posts", (user_post_counts > 1).sum() * 100 / user_post_counts.sum())
+            _record_stat(period, "Ratio of posts with multiple users commenting", (post_user_counts > 1).sum() * 100 / post_user_counts.sum())
 
-        output_path = os.path.join(self.reports_dir, self.general_metrics_filename)
-        general_stats = pd.DataFrame(general_stats)
-        general_stats.to_csv(output_path, index=False)
-        print(f"Exported report to '{output_path}'")
+        def _calculate_network_stats(period: str, network: nx.Graph, community: dict):
 
-        return general_stats
+            gcc = metrics.get_largest_connected_component(network)
+
+            partition = {}
+            for node, lst in community.items():
+                for comm_id in lst:
+                    if comm_id not in partition.keys():
+                        partition[comm_id] = {node}
+                    else:
+                        partition[comm_id].add(node)
+            partition = list(partition.values())
+
+            _record_distribution_stat(period, network)
+            _record_stat(period, "Total node count", metrics.get_node_count(network))
+            _record_stat(period, "Total edge count", metrics.get_edge_count(network))
+            _record_stat(period, "Density", metrics.get_density(network))
+            _record_stat(period, "Assortativity", metrics.get_assortativity(network))
+            _record_stat(period, "Community count", metrics.get_community_count(partition))
+            _record_stat(period, "Community modularity", metrics.get_modularity(network, partition))
+
+            _record_distribution_stat(f"{period}-GCC", gcc)
+            _record_stat(period, "Total node count", metrics.get_node_count(gcc))
+            _record_stat(period, "Total edge count", metrics.get_edge_count(gcc))
+            _record_stat(period, "Density", metrics.get_density(gcc))
+            _record_stat(period, "Diameter", metrics.get_diameter(gcc))
+            _record_stat(period, "Average shortest path", metrics.get_average_shortest_path(gcc))
+            _record_stat(period, "Assortativity", metrics.get_assortativity(gcc))
+
+        print("Calculating relevant metrics...")
+
+        snapshots = {synthetic_network_name: synthetic_network} if synthetic else self.snapshots
+        communities = self.detected_communities_synthetic_data if synthetic else self.detected_communities
+
+        numeric_metrics = self.numeric_metrics
+        distribution_metrics = self.distribution_metrics
+
+        if self.use_checkpoints:
+            checkpoint_data = self.load_checkpoint(self.metrics_filename)
+            if checkpoint_data is not None:
+                numeric_metrics, distribution_metrics = checkpoint_data
+
+        # Save simple network-level metrics
+        for period, network in snapshots.items():
+
+            print(f"    Processing period {period}...")
+
+            if self.use_checkpoints and period in distribution_metrics.keys():
+                continue
+
+            if not synthetic:
+                _calculate_post_stats(period)
+
+            _calculate_network_stats(period, network, communities[period])
+
+        if self.use_checkpoints:
+            self.save_checkpoint((numeric_metrics, distribution_metrics), self.metrics_filename)
+
+        output_path = os.path.join(self.reports_dir, self.metrics_filename).replace(".pkl", ".csv")
+        numeric_metrics = pd.DataFrame(numeric_metrics)
+        numeric_metrics.to_csv(output_path, index=False)
+        print(f"Exported numeric metrics to {output_path}")
+
+        self.numeric_metrics = numeric_metrics
+        self.distribution_metrics = distribution_metrics
+
+        return numeric_metrics, distribution_metrics
 
     def export_network_metrics(self):
         """

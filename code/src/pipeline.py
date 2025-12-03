@@ -55,6 +55,7 @@ def run_analysis(
         checkpoint_dir: str = "./checkpoints",
         reports_dir: str = "./reports",
         synthetic_network: nx.Graph = None,
+        synthetic_network_name: str = None,
         n_workers: int = 1,
     ) -> RedditNetworkAnalyzer:
     """
@@ -85,8 +86,10 @@ def run_analysis(
             checkpoints (default: "./checkpoints").
         reports_dir (str, optional): Directory in which to save the
             reports (default: "./reports").
-        synthetic_network (nx.Graph): If provided, compares the observed
-            network to a synthetic network (default: None).
+        synthetic_network (nx.Graph, optional): If provided, compares
+            the observed network to a synthetic network (default: None).
+        synthetic_network_name (str, optional): Name to assign to the
+            synthetic network (default: None).
         n_workers (int, optional): Number of workers to use for parallel
             processing (default: 1).
 
@@ -148,15 +151,18 @@ def run_analysis(
             analyzer.detect_communities(
                 synthetic=True,
                 synthetic_network=synthetic_network,
+                synthetic_network_name=synthetic_network_name,
             )
 
         # Phase 5: Generate descriptive metrics about networks
         analyzer.run_network_analysis()
 
-        analyzer.export_network_metrics(
-            synthetic=synthetic_network is not None,
-            synthetic_network=synthetic_network,
-        )
+        if synthetic_network is not None:
+            analyzer.run_network_analysis(
+                synthetic=True,
+                synthetic_network=synthetic_network,
+                synthetic_network_name=synthetic_network_name,
+            )
 
         hub_evolution = analyzer.parallel_hub_analysis(community_results)
         stability_metrics = analyzer.calculate_stability_metrics(community_results, hub_evolution)

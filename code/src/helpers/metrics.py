@@ -18,12 +18,16 @@ def get_diameter(G: nx.Graph):
     return nx.diameter(G)
 
 
+def get_largest_connected_component(G: nx.Graph):
+    nodes = max(nx.connected_components(G), key=len)
+    return G.subgraph(nodes)
+
+
 def get_average_shortest_path(G: nx.Graph):
     if nx.is_connected(G):
         largest_connected_component = G
     else:
-        nodes = max(nx.connected_components(G), key=len)
-        largest_connected_component = G.subgraph(nodes)
+        largest_connected_component = get_largest_connected_component(G)
     return nx.average_shortest_path_length(largest_connected_component)
 
 
@@ -31,12 +35,12 @@ def get_assortativity(G: nx.Graph):
     return float(nx.degree_assortativity_coefficient(G))
 
 
-def get_connected_component_size_distribution(G: nx.Graph):
-    return [len(c) for c in nx.connected_components(G)]
-
-
 def get_node_degrees_distribution(G: nx.Graph):
     return [G.degree(n) for n in G.nodes]
+
+
+def get_connected_component_size_distribution(G: nx.Graph):
+    return [len(c) for c in nx.connected_components(G)]
 
 
 def get_clustering_coefficient_distribution(G: nx.Graph):
