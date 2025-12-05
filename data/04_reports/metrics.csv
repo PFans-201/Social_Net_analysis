@@ -1,0 +1,155 @@
+network,metric_name,metric_value
+2017#1,Total comment count,0.0
+2017#1,Unique users,0.0
+2017#1,Unique posts with comments,0.0
+2017#1,Total comments without text,0.0
+2017#1,Total comments that are replies,0.0
+2017#1,Median posts per user,
+2017#1,Median users per post,
+2017#1,Ratio of users commenting on multiple posts,
+2017#1,Ratio of posts with multiple users commenting,
+2017#1,Total node count,22286.0
+2017#1,Total edge count,33167.0
+2017#1,Density,0.00013356461659994308
+2017#1,Assortativity,-0.09020618193487501
+2017#1,Community count,356.0
+2017#1,Community modularity,0.8253328552617641
+2017#1,Average internal vs external edge ratio,1.2521387314122177
+2017#1,Total node count,21564.0
+2017#1,Total edge count,32739.0
+2017#1,Density,0.0001408175874547156
+2017#1,Diameter,19.0
+2017#1,Average shortest path,5.6975368806461715
+2017#1,Assortativity,-0.09163468324280456
+2018#1,Total comment count,0.0
+2018#1,Unique users,0.0
+2018#1,Unique posts with comments,0.0
+2018#1,Total comments without text,0.0
+2018#1,Total comments that are replies,0.0
+2018#1,Median posts per user,
+2018#1,Median users per post,
+2018#1,Ratio of users commenting on multiple posts,
+2018#1,Ratio of posts with multiple users commenting,
+2018#1,Total node count,19858.0
+2018#1,Total edge count,29411.0
+2018#1,Density,0.00014917314453494058
+2018#1,Assortativity,-0.08149015374926577
+2018#1,Community count,279.0
+2018#1,Community modularity,0.8333498634870334
+2018#1,Average internal vs external edge ratio,1.3062650004789709
+2018#1,Total node count,19312.0
+2018#1,Total edge count,29086.0
+2018#1,Density,0.00015598469168402417
+2018#1,Diameter,20.0
+2018#1,Average shortest path,6.018337693568283
+2018#1,Assortativity,-0.08270701215429746
+2016#1,Total comment count,0.0
+2016#1,Unique users,0.0
+2016#1,Unique posts with comments,0.0
+2016#1,Total comments without text,0.0
+2016#1,Total comments that are replies,0.0
+2016#1,Median posts per user,
+2016#1,Median users per post,
+2016#1,Ratio of users commenting on multiple posts,
+2016#1,Ratio of posts with multiple users commenting,
+2016#1,Total node count,16861.0
+2016#1,Total edge count,24818.0
+2016#1,Density,0.00017460467883974635
+2016#1,Assortativity,-0.08399646067721386
+2016#1,Community count,327.0
+2016#1,Community modularity,0.8182954550094883
+2016#1,Average internal vs external edge ratio,1.220985443286631
+2016#1,Total node count,16237.0
+2016#1,Total edge count,24456.0
+2016#1,Density,0.0001855370247645043
+2016#1,Diameter,16.0
+2016#1,Average shortest path,5.527463439851887
+2016#1,Assortativity,-0.08552463282985537
+2017#7,Total comment count,0.0
+2017#7,Unique users,0.0
+2017#7,Unique posts with comments,0.0
+2017#7,Total comments without text,0.0
+2017#7,Total comments that are replies,0.0
+2017#7,Median posts per user,
+2017#7,Median users per post,
+2017#7,Ratio of users commenting on multiple posts,
+2017#7,Ratio of posts with multiple users commenting,
+2017#7,Total node count,21265.0
+2017#7,Total edge count,30698.0
+2017#7,Density,0.00013577809989213122
+2017#7,Assortativity,-0.08425797685135386
+2017#7,Community count,258.0
+2017#7,Community modularity,0.8460826966300967
+2017#7,Average internal vs external edge ratio,1.4901457209625366
+2017#7,Total node count,20807.0
+2017#7,Total edge count,30436.0
+2017#7,Density,0.00014061106892866308
+2017#7,Diameter,17.0
+2017#7,Average shortest path,5.73963448541627
+2017#7,Assortativity,-0.08512974460524077
+2018#7,Total comment count,0.0
+2018#7,Unique users,0.0
+2018#7,Unique posts with comments,0.0
+2018#7,Total comments without text,0.0
+2018#7,Total comments that are replies,0.0
+2018#7,Median posts per user,
+2018#7,Median users per post,
+2018#7,Ratio of users commenting on multiple posts,
+2018#7,Ratio of posts with multiple users commenting,
+2018#7,Total node count,17710.0
+2018#7,Total edge count,25358.0
+2018#7,Density,0.00016170833073071434
+2018#7,Assortativity,-0.12960154468044058
+2018#7,Community count,265.0
+2018#7,Community modularity,0.8552016032229044
+2018#7,Average internal vs external edge ratio,1.4410025859587354
+2018#7,Total node count,17216.0
+2018#7,Total edge count,25068.0
+2018#7,Density,0.00016916495621200063
+2018#7,Diameter,17.0
+2018#7,Average shortest path,6.030093357893339
+2018#7,Assortativity,-0.13166862170876176
+2016#7,Total comment count,0.0
+2016#7,Unique users,0.0
+2016#7,Unique posts with comments,0.0
+2016#7,Total comments without text,0.0
+2016#7,Total comments that are replies,0.0
+2016#7,Median posts per user,
+2016#7,Median users per post,
+2016#7,Ratio of users commenting on multiple posts,
+2016#7,Ratio of posts with multiple users commenting,
+2016#7,Total node count,16417.0
+2016#7,Total edge count,23184.0
+2016#7,Density,0.0001720510083150863
+2016#7,Assortativity,-0.08088050996025291
+2016#7,Community count,298.0
+2016#7,Community modularity,0.8466436251477295
+2016#7,Average internal vs external edge ratio,1.3550030261301722
+2016#7,Total node count,15824.0
+2016#7,Total edge count,22833.0
+2016#7,Density,0.00018238447609286428
+2016#7,Diameter,18.0
+2016#7,Average shortest path,5.8669662406039205
+2016#7,Assortativity,-0.08238577156526747
+2015#7,Total comment count,0.0
+2015#7,Unique users,0.0
+2015#7,Unique posts with comments,0.0
+2015#7,Total comments without text,0.0
+2015#7,Total comments that are replies,0.0
+2015#7,Median posts per user,
+2015#7,Median users per post,
+2015#7,Ratio of users commenting on multiple posts,
+2015#7,Ratio of posts with multiple users commenting,
+2015#7,Total node count,12153.0
+2015#7,Total edge count,16742.0
+2015#7,Density,0.00022672847895498729
+2015#7,Assortativity,-0.07698961396641667
+2015#7,Community count,256.0
+2015#7,Community modularity,0.8452291339664978
+2015#7,Average internal vs external edge ratio,1.3747769718422342
+2015#7,Total node count,11675.0
+2015#7,Total edge count,16455.0
+2015#7,Density,0.00024146339584405618
+2015#7,Diameter,16.0
+2015#7,Average shortest path,5.84062872930163
+2015#7,Assortativity,-0.07858312329283212

@@ -1042,11 +1042,10 @@ class RedditNetworkAnalyzer:
             # self._create_temporal_plots(aux_df_posts, aux_df_comments)
             # self._analyze_user_activity(aux_df_comments)
             # self._analyze_post_engagement(aux_df_posts, aux_df_comments)
-            # self._analyze_reply_network(aux_df_comments)
             # self._analyze_sentiment(aux_df_comments)
 
-        if self.use_checkpoints:
-            self.save_checkpoint((numeric_metrics, distribution_metrics), self.metrics_filename)
+            if self.use_checkpoints:
+                self.save_checkpoint((numeric_metrics, distribution_metrics), self.metrics_filename)
 
         output_path = os.path.join(self.reports_dir, self.metrics_filename).replace(".pkl", ".csv")
         numeric_metrics = pd.DataFrame(numeric_metrics)
@@ -1354,6 +1353,79 @@ class RedditNetworkAnalyzer:
             print(f"\n✗ Stability calculation failed: {e}\n")
             return {}
 
+    def compare_period_transition(self, period1, period2, community_results, hub_evolution):
+        """
+        Compare two periods: user overlap, hub changes, and provide sample lists.
+
+        Args:
+            period1 (str): First period identifier.
+            period2 (str): Second period identifier.
+            community_results (dict): Period -> communities mapping.
+            hub_evolution (dict): Period -> hub mapping.
+
+        Returns:
+            dict: Containing sets for common_users, users_only_in_1, users_only_in_2,
+                  common_hubs, new_hubs, lost_hubs
+        """
+        if period1 not in community_results or period2 not in community_results:
+            logger.warning("One or both periods not found in community_results: %s, %s", period1, period2)
+            print("One or both periods not found in results")
+            return None
+
+        print(f"\n{'='*70}")
+        print(f"🔄 COMPARING PERIODS: {period1} vs {period2}")
+        print(f"{'='*70}")
+
+        comm1 = community_results.get(period1, {}).get('communities', {})
+        comm2 = community_results.get(period2, {}).get('communities', {})
+        hubs1 = hub_evolution.get(period1, {}).get('hubs', {})
+        hubs2 = hub_evolution.get(period2, {}).get('hubs', {})
+
+        # User overlap and exclusive sets
+        common_users = set(comm1.keys()) & set(comm2.keys())
+        users_only_in_1 = set(comm1.keys()) - set(comm2.keys())
+        users_only_in_2 = set(comm2.keys()) - set(comm1.keys())
+
+        print("\n👥 USER OVERLAP ANALYSIS:")
+        print(f"   • Users in {period1}: {len(comm1):,}")
+        print(f"   • Users in {period2}: {len(comm2):,}")
+        print(f"   • Common users: {len(common_users):,}")
+        print(f"   • Only in {period1}: {len(users_only_in_1):,}")
+        print(f"   • Only in {period2}: {len(users_only_in_2):,}")
+
+        # Hub transitions
+        common_hubs = set(hubs1.keys()) & set(hubs2.keys())
+        new_hubs = set(hubs2.keys()) - set(hubs1.keys())
+        lost_hubs = set(hubs1.keys()) - set(hubs2.keys())
+
+        print("\n⭐ HUBS:")
+        print(f"   • Hubs in {period1}: {len(hubs1):,}")
+        print(f"   • Hubs in {period2}: {len(hubs2):,}")
+        print(f"   • Common hubs: {len(common_hubs):,}")
+        print(f"   • New hubs in {period2}: {len(new_hubs):,}")
+        print(f"   • Lost hubs from {period1}: {len(lost_hubs):,}")
+
+        # Show sample lists to assist quick inspection
+        sample_new = list(new_hubs)[:10]
+        sample_lost = list(lost_hubs)[:10]
+        if sample_new:
+            print(f"   • Sample new hubs: {sample_new}")
+        if sample_lost:
+            print(f"   • Sample lost hubs: {sample_lost}")
+
+        logger.info("Compared periods %s vs %s: users %d/%d common, hubs new=%d lost=%d",
+                    period1, period2, len(common_users), len(set(comm1.keys()) | set(comm2.keys())),
+                    len(new_hubs), len(lost_hubs))
+
+        return {
+            'common_users': common_users,
+            'users_only_in_1': users_only_in_1,
+            'users_only_in_2': users_only_in_2,
+            'common_hubs': common_hubs,
+            'new_hubs': new_hubs,
+            'lost_hubs': lost_hubs
+        }
+
     def visualize_network_period(self, period, community_results, hub_evolution,
                                  max_nodes=500, layout='spring', show_labels=True):
         """
@@ -1651,79 +1723,6 @@ class RedditNetworkAnalyzer:
             print("   ✅ Significant correlation detected (p < 0.05)")
         else:
             print("   ❌ No significant correlation detected")
-
-    def compare_period_transition(self, period1, period2, community_results, hub_evolution):
-        """
-        Compare two periods: user overlap, hub changes, and provide sample lists.
-
-        Args:
-            period1 (str): First period identifier.
-            period2 (str): Second period identifier.
-            community_results (dict): Period -> communities mapping.
-            hub_evolution (dict): Period -> hub mapping.
-
-        Returns:
-            dict: Containing sets for common_users, users_only_in_1, users_only_in_2,
-                  common_hubs, new_hubs, lost_hubs
-        """
-        if period1 not in community_results or period2 not in community_results:
-            logger.warning("One or both periods not found in community_results: %s, %s", period1, period2)
-            print("One or both periods not found in results")
-            return None
-
-        print(f"\n{'='*70}")
-        print(f"🔄 COMPARING PERIODS: {period1} vs {period2}")
-        print(f"{'='*70}")
-
-        comm1 = community_results.get(period1, {}).get('communities', {})
-        comm2 = community_results.get(period2, {}).get('communities', {})
-        hubs1 = hub_evolution.get(period1, {}).get('hubs', {})
-        hubs2 = hub_evolution.get(period2, {}).get('hubs', {})
-
-        # User overlap and exclusive sets
-        common_users = set(comm1.keys()) & set(comm2.keys())
-        users_only_in_1 = set(comm1.keys()) - set(comm2.keys())
-        users_only_in_2 = set(comm2.keys()) - set(comm1.keys())
-
-        print("\n👥 USER OVERLAP ANALYSIS:")
-        print(f"   • Users in {period1}: {len(comm1):,}")
-        print(f"   • Users in {period2}: {len(comm2):,}")
-        print(f"   • Common users: {len(common_users):,}")
-        print(f"   • Only in {period1}: {len(users_only_in_1):,}")
-        print(f"   • Only in {period2}: {len(users_only_in_2):,}")
-
-        # Hub transitions
-        common_hubs = set(hubs1.keys()) & set(hubs2.keys())
-        new_hubs = set(hubs2.keys()) - set(hubs1.keys())
-        lost_hubs = set(hubs1.keys()) - set(hubs2.keys())
-
-        print("\n⭐ HUBS:")
-        print(f"   • Hubs in {period1}: {len(hubs1):,}")
-        print(f"   • Hubs in {period2}: {len(hubs2):,}")
-        print(f"   • Common hubs: {len(common_hubs):,}")
-        print(f"   • New hubs in {period2}: {len(new_hubs):,}")
-        print(f"   • Lost hubs from {period1}: {len(lost_hubs):,}")
-
-        # Show sample lists to assist quick inspection
-        sample_new = list(new_hubs)[:10]
-        sample_lost = list(lost_hubs)[:10]
-        if sample_new:
-            print(f"   • Sample new hubs: {sample_new}")
-        if sample_lost:
-            print(f"   • Sample lost hubs: {sample_lost}")
-
-        logger.info("Compared periods %s vs %s: users %d/%d common, hubs new=%d lost=%d",
-                    period1, period2, len(common_users), len(set(comm1.keys()) | set(comm2.keys())),
-                    len(new_hubs), len(lost_hubs))
-
-        return {
-            'common_users': common_users,
-            'users_only_in_1': users_only_in_1,
-            'users_only_in_2': users_only_in_2,
-            'common_hubs': common_hubs,
-            'new_hubs': new_hubs,
-            'lost_hubs': lost_hubs
-        }
 
 
 def _estimate_gcc_size_worker(args):
