@@ -16,9 +16,6 @@ import traceback
 import warnings
 
 import networkx as nx
-import matplotlib.pyplot as plt
-import seaborn as sns
-
 
 from src.helpers.network_analyzer import RedditNetworkAnalyzer
 
@@ -40,10 +37,6 @@ file_formatter = logging.Formatter("%(asctime)s - %(levelname)s - [%(name)s] - %
 file_handler.setFormatter(file_formatter)
 logger.addHandler(file_handler)
 logger.propagate = False
-
-# Configure matplotlib and seaborn palletes
-plt.style.use("default")
-sns.set_palette("husl")
 
 
 def run_analysis(
@@ -164,15 +157,6 @@ def run_analysis(
                 synthetic_network_name=synthetic_network_name,
             )
 
-        # hub_evolution = analyzer.parallel_hub_analysis(community_results)
-        # stability_metrics = analyzer.calculate_stability_metrics(community_results, hub_evolution)
-        # if stability_metrics:
-        #     analyzer.plot_stability_metrics(stability_metrics)
-
-        # # Export final results and generate report
-        # analyzer.export_results(community_results, hub_evolution, stability_metrics)
-        # analyzer.generate_report(stability_metrics)
-
         print(
             "=" * 70,
             "ANALYSIS COMPLETED SUCCESSFULLY",
@@ -196,82 +180,16 @@ def run_analysis(
         return analyzer
 
 
-# Usage example in Jupyter notebook:
-def demo_visualizations(analyzer, community_results, hub_evolution, stability_metrics):
-    """
-    Demo helper showing how to call visualization functions interactively.
-
-    Args:
-        analyzer (RedditNetworkAnalyzer): An initialized analyzer instance.
-        community_results (dict): Output of community detection per period.
-        hub_evolution (dict): Hub diagnostics per period.
-        stability_metrics (dict): Stability metrics to plot and inspect.
-    """
-    # 1. Visualize a specific period (choose middle period by default)
-    print("1. 📊 Visualizing a specific network period:")
-    periods = list(community_results.keys())
-    if periods:
-        sample_period = periods[len(periods)//2]  # Middle period
-        analyzer.visualize_network_period(sample_period, community_results, hub_evolution)
-
-    # 2. Compare two periods
-    print("\n2. 🔄 Comparing period transitions:")
-    if len(periods) >= 2:
-        analyzer.compare_period_transition(periods[0], periods[1], community_results, hub_evolution)
-
-    # 3. Plot stability metrics
-    print("\n3. 📈 Plotting stability metrics:")
-    if stability_metrics:
-        analyzer.plot_stability_metrics(stability_metrics)
-
-    # 4. Show network metrics (example)
-    print("\n4. 📋 Network metrics summary:")
-    network_metrics_df = analyzer.export_network_metrics(
-        {p: community_results[p]['network'] for p in community_results.keys()}
-    )
-    if network_metrics_df is not None:
-        print(network_metrics_df.head())
-
-
 if __name__ == "__main__":
 
     # Example usage (update data_path as needed)
     analyzer, community_results, stability_metrics, network_metrics_df = run_analysis(
         data_path="../Documentaries.corpus",
+        snapshots_per_year=2,
+        min_giant_component_size=10_000,
+        overlapping_communities=False,
+        use_checkpoints=True,
         checkpoint_dir="checkpoints",
-        min_giant_component_size=10000,
-        snapshots_per_year=6,
-        overlapping_communities=True,
-        use_checkpoints=True
+        reports_dir="reports",
+        n_workers=1,
     )
-
-    # # MANUAL INSPECTION AND VISUALIZATION
-    # analyzer.visualize_network_period('2018-03', communities, hubs)
-    # analyzer.compare_period_transition('2018-03', '2018-04', communities, hubs)
-
-    # # Each edge in the networks can be accessed via:
-    # # snapshots['2018-03']['user_network'].edges(data=True)
-    # # Example usage:
-    # for u, v, data in G.edges(data=True):
-    #     print(f"Edge {u} -> {v}:")
-    #     print(f"  Interactions: {data['weight']}")
-    #     print(f"  Average sentiment: {data['avg_sentiment']:.3f}")
-    #     print(f"  Sentiment range: [{data['min_sentiment']:.3f}, {data['max_sentiment']:.3f}]")
-    #     print(f"  Sentiment std: {data['sentiment_std']:.3f}")
-
-    # # Check some sample texts
-    # print("\nSample texts from loaded data:")
-    # for _, row in df_comments.sample(n=3, random_state=42).iterrows():
-    #     print(f"\nUser: {row['user']}")
-    #     print(f"Text length: {len(row['text'])}")
-    #     print(f"Text preview: {row['text'][:200]}...")
-
-    # # Check overlapping communities
-    # period = '2018-03'
-    # user_communities = communities[period]['communities']
-    # overlapping_users = [user for user, comms in user_communities.items() if len(comms) > 1]
-    # print(f"Users in multiple communities: {len(overlapping_users)}")
-
-    # # Load metrics for analysis
-    # metrics_df = pd.read_csv('network_metrics.csv')
-    # print(metrics_df.head())
