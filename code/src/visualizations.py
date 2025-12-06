@@ -499,4 +499,3 @@ def plot_stability_metrics(self, stability_metrics, output_file='stability_analy
         print("   ✅ Significant correlation detected (p < 0.05)")
     else:
         print("   ❌ No significant correlation detected")
-
