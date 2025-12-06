@@ -25,6 +25,11 @@ def get_largest_connected_component(G: nx.Graph):
     return G.subgraph(nodes)
 
 
+def get_largest_community(G: nx.Graph, partition: list[set]):
+    nodes = max(partition, key=len)
+    return G.subgraph(nodes)
+
+
 def get_average_shortest_path(G: nx.Graph):
     if nx.is_connected(G):
         largest_connected_component = G
