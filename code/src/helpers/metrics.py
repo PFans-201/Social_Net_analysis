@@ -1,5 +1,7 @@
 import networkx as nx
 import numpy as np
+from scipy.stats import ks_2samp
+from scipy.spatial.distance import jensenshannon
 
 
 def get_node_count(G: nx.Graph):
@@ -163,3 +165,61 @@ def get_community_exit_counts(reference: dict, current_data: dict):
 
     former_users = set(reference.keys()) - set(current_data.keys())
     return len(former_users)
+
+
+def perform_ks_test(reference: list, current_data: list):
+    """
+    Perform a Kolmogorov-Smirnov test to check whether two samples
+    are statistically likely to follow the same distribution.
+
+    Args:
+        reference (list): First data sample.
+        current_data (list): Second data sample.
+
+    Returns:
+        dict: Dictionary containing the KS test statistic and p-value
+            with the format {"statistic": float, "p_value": float}.
+    """
+    x = np.asarray(reference)
+    y = np.asarray(current_data)
+
+    ks_stat, ks_pval = ks_2samp(x, y)
+    ks_result = {"statistic": ks_stat, "p_value": ks_pval}
+
+    return ks_result
+
+
+def compute_js_distance(reference: list, current_data: list, num_bins: int = 50):
+    """
+    Compute the Jensen-Shannon distance between two samples.
+
+    Args:
+        reference (list): First data sample.
+        current_data (list): Second data sample.
+        num_bins (int, optional): Number of bins used to build
+            histograms for estimating probability distributions
+            for the JS distance computation (default: 50).
+
+    Returns:
+        float: JS distance between the two empirical distributions.
+    """
+    x = np.asarray(reference)
+    y = np.asarray(current_data)
+
+    # Create a unified bin range
+    min_val = min(x.min(), y.min())
+    max_val = max(x.max(), y.max())
+    bins = np.linspace(min_val, max_val, num_bins + 1)
+
+    # Compute normalized histograms (empirical probability distributions)
+    p_hist, _ = np.histogram(x, bins=bins, density=True)
+    q_hist, _ = np.histogram(y, bins=bins, density=True)
+
+    # Add small epsilon to avoid zero-probability issues
+    eps = 1e-12
+    p = p_hist / (p_hist + eps).sum()
+    q = q_hist / (q_hist + eps).sum()
+
+    js_distance = jensenshannon(p, q)
+
+    return js_distance
