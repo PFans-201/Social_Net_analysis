@@ -1,5 +1,5 @@
 %%
-\documentclass[format=acmsmall]{acmart}
+\documentclass[format=acmlarge]{acmart}
 
 %% \BibTeX command to typeset BibTeX logo in the docs
 \AtBeginDocument{%
@@ -32,7 +32,7 @@
 \begin{document}
 
 %%
-\title{Social Net Analysis}
+\title{Stability and Change in Online Interaction Patterns: Case Study of a Subreddit Activity Network}
 
 %%
 \author{Maria João Vicente}
@@ -78,39 +78,43 @@
 \maketitle
 
 \section{Introduction}
-ACM's consolidated article template, introduced in 2017, provides a
-consistent \LaTeX\ style for use across ACM publications, and
-incorporates accessibility and metadata-extraction functionality
-necessary for future Digital Library endeavors.
 
-The ``\verb|acmart|'' document class can be used to prepare articles
-for any ACM publication --- conference or journal, and for any stage
-of publication, from review to final ``camera-ready'' copy, to the
-author's own version, with {\itshape very} few changes to the source.
+Online social communities generate complex patterns of user interaction
+that evolve continuously over time. Platforms such as Reddit allow users
+to participate through posts and replies, providing a rich source of
+social data that can be modeled as networks and studied using techniques
+from the domain of Network Science and Graph Theory. The analysis of such
+networks is essential to understand how communities grow, stabilize,
+fracture, or reorganize themselves.
+
+In this work, we performed a longitudinal exam of the temporal
+dynamics of a specific Subreddit (\verb|r/Documentaries|), between the years
+2015 and 2018. To that end, we constructed periodical monthly snapshots
+of this Subreddit's user interaction network. Each snapshot is a distinct
+network, where users are represented as nodes and reply relationships
+as weighted, undirected edges, capturing both the existence and intensity
+of interactions.
+
+By computing a suite of structural metrics, such as degree distribution,
+clustering coefficients, centrality measures, communities, and component
+structure, and plotting their trajectories across time, we aim to characterize
+the evolution of user behavioral patterns, identify persistent structural
+features and assess the overall stability of this Subreddit's underlying
+social fabric.
+
+The goal is to describe the temporal behaviour of this Subreddit, but also
+to explore whether this online community exhibits some type of stable
+signature in their network properties or whether, on the other hand, it
+evolves unpredictably. To that end, we also created a theorical network
+model and measured how it approximated the observed community.
 
 \section{Related Work}
-As noted in the introduction, the ``\verb|acmart|'' document class can
-be used to prepare many different kinds of documentation --- a
-double-anonymous initial submission of a full-length technical paper, a
-two-page SIGGRAPH Emerging Technologies abstract, a ``camera-ready''
-journal article, a SIGCHI Extended Abstract, and more --- all by
-selecting the appropriate {\itshape template style} and {\itshape
-  template parameters}.
 
-This document will explain the major features of the document
-class. For further information, the {\itshape \LaTeX\ User's Guide} is
-available from
-\url{https://www.acm.org/publications/proceedings-template}.
-
-The primary parameter given to the ``\verb|acmart|'' document class is
-the {\itshape template style} which corresponds to the kind of publication
-or SIG publishing the work. This parameter is enclosed in square
-brackets and is a part of the {\verb|documentclass|} command:
 \begin{verbatim}
   \documentclass[STYLE]{acmart}
 \end{verbatim}
 
-Journals use one of three template styles. All but three ACM journals
+Journals use one of three {\itshape template styles}. All but three ACM journals
 use the {\verb|acmsmall|} template style:
 \begin{itemize}
 \item {\texttt{acmsmall}}: The default journal template style.
@@ -118,14 +122,17 @@ use the {\verb|acmsmall|} template style:
 \item {\texttt{acmtog}}: Used by TOG.
 \end{itemize}
 
+{\bfseries Your document will be returned to you for revision if
+  modifications are discovered.} For further information, the
+  {\itshape \LaTeX\ User's Guide} is available from
+\url{https://www.acm.org/publications/proceedings-template}.
+
 \section{Data}
 
 Modifying the template --- including but not limited to: adjusting
 margins, typeface sizes, line spacing, paragraph and list definitions,
 and the use of the \verb|\vspace| command to manually adjust the
 vertical spacing between elements of your work --- is not allowed.
-{\bfseries Your document will be returned to you for revision if
-  modifications are discovered.}
 
 \section{Methods}
 
