@@ -32,7 +32,7 @@
 \begin{document}
 
 %%
-\title{Stability and Change in Online Interaction Patterns: Case Study of a Subreddit Activity Network}
+\title{Temporal Stability and Equilibrium Dynamics in Online Social Interactions: Case Study of a Subreddit Activity Network}
 
 %%
 \author{Maria João Vicente}
@@ -118,25 +118,90 @@ Code snippet example:
 Text can be in {\itshape italic style}, {\bfseries bold style},
 \underline{underlined} or {\verb|code|}.
 
-To create an unsorted list:
-\begin{itemize}
-  \item The individual entries are indicated with a black dot, a so-called bullet.
-  \item The text in the entries may be of any length.
-\end{itemize}
-
-Numbered lists are created as follows:
-\begin{enumerate}
-  \item This is the first entry in our list.
-  \item The list numbers increase with each entry we add.
-\end{enumerate}
-
-For further information, the
-  {\itshape \LaTeX\ User's Guide} is available from
-\url{https://www.acm.org/publications/proceedings-template}.
-
 \section{Data}
 
+\subsection{Data Source and Choice}
 
+The base data for this case study was downloaded as a zip file from ConvoKit, the Cornell
+Conversation Analysis Toolkit, at /url{https://zissou.infosci.cornell.edu/convokit/datasets/subreddit-corpus/corpus-zipped/}.
+According to their documentation:
+
+\say{This toolkit contains tools to extract conversational features and analyze social
+phenomena in conversations, using a single unified interface inspired by (and compatible with)
+scikit-learn. Several large conversational datasets are included together with scripts
+exemplifying the use of the toolkit on these datasets.}
+
+This website includes extracts from multiple Subreddits. Our criteria to select the
+r/Documentaries Subreddit as the object of our study was:
+\begin{enumerate}
+  \item {\bfseries Size of the dataset:} at 340 MB, this seemed like a manageable dataset that
+  could produce networks with a sufficient number of nodes to derive meaningful results
+  from without compromising performance or operational agility. Our aim was to work with
+  networks that contained at least 10 000 nodes.
+  \item {\bfseries Reference in previous work:} The r/Documentaries Subreddit was mentioned in
+  the 2018 article {\itshape Community Interaction and Conflict on the Web}, by S. Kumar, W. L.
+  Hamilton, J. Leskovec and D. Jurafsky\cite{Kumar2018}. In their study, the authors identified
+  a group of users from another Subreddit, who mobilized together and initiated a targetted
+  attack against r/Documentaries, by posting malicious responses to posts in that Subreddit.
+  Given our intention to analyse the stability and cohesion of an online community over time,
+  the existence of such conflicts that necessarily interfere with regular user activity was
+  of particular interest to us.
+\end{enumerate}
+
+\subsection{Data Preparation}
+
+The base dataset included data from the time of the Subreddit's creation up to October 2018.
+Some notes on the structure of the data and nomenclature:
+\begin{itemize}
+  \item {\bfseries Users} are identified by their Reddit username.
+  \item An individual post or a comment is an {\bfseries utterance}.
+  \item A post and its respective response comments is a {\bfseries conversation}.
+  \item Users whose profile was deleted have their username replaced with the string {\verb|[deleted]|}.
+  \item Deleted utterances have their content replaced with the string {\verb|[removed]|}.
+\end{itemize}
+
+Our data preprocessing pipeline started with the loading of the conversation and utterance datasets,
+which we called {\bfseries posts} and {\bfseries comments}, respectively. We then performed a series
+of preprocessing operations, namely:
+\begin{itemize}
+  \item Parsing conversation timestamps: The timestamp of the start of a conversation
+  was converted from a unix-timestamp to a datetime object.
+  \item Parsing utterance timestamps: The timestamp in which an utterance was produced
+  was converted from a unix-timestamp to a datetime object. When the original timestamp
+  could not be parsed, the records were dropped from the dataset. In the remaining records,
+  we created four derived features based on the timestamp: the week of year number, the month
+  of year number, the year, and the string concatenating year and month in YYYY-MM format.
+  These new features enabled us to identify which utterances belongeded to each network snapshot
+  in later preprocessing steps.
+  \item Excluding invalid utterances based on user details: To prevent skewing the results,
+  we excluded all utterances where the user was identified as {\verb|[deleted]|} or was left undefined.
+  If these utterances had been left in the dataset, they would have produced user nodes in the networks
+  with a substantially higher degree than the others, as they would have aggregated the activity from
+  an unknown number of users. For the same reason, we also excluded all utterances where the reply-to
+  user was undefined (note: the first utterance in a conversation is considered to be a self-reply,
+  so this field should not be empty under normal circumstances).
+  \item Excluding invalid utterances based on text: Our goal was to derive new attributes from the
+  utterance text that could be used to characterize the network and communities found therein.
+  As such, we excluded all utterances in which the text was unavailable.
+  \item Calculating sentiment analysis score for each utterance: We used the VADER SentimentIntensityAnalyzer
+  model to calculate the sentiment score for each utterance. This was an example of an attribute
+  that could be extracted from the text of the utterances that could be used to characterize
+  communities of users. Other attributes considered were a controlled subset of topics, but due
+  to time constraints, these were not implemented.
+\end{itemize}
+
+\subsection{Network Preparation}
+
+With the base data preprocessed and formatted, the next step in our process was to create user-user
+networks based on the tabular utterance data. Our algorithm worked by taking as inputs the number of
+snapshots per year to be created and the temporal granularity of the data (weekly or monthly). For
+the purpose of the results presented in this report, we generated four monthly snapshot networks,
+according to the following process:
+
+\begin{enumerate}
+  \item {\bfseries Size of the dataset:}
+  \item {\bfseries Reference in previous work:}
+\end{enumerate}
 
 \section{Methods}
 
