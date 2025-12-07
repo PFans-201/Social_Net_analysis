@@ -14,14 +14,14 @@ network,metric_name,metric_value
 2016#11,Ratio of posts with multiple users commenting,2.394834350479512
 2016#11,Total node count,26030.0
 2016#11,Total edge count,36569.0
-2016#11,Density,0.00010794721163207437
+2016#11,Density,0.000107947211632
 2016#11,Assortativity,-0.0679319151816973
 2016#11,Community count,492.0
 2016#11,Community modularity,0.8347059119987473
 2016#11,Average internal vs external edge ratio,1.2159727099293716
 2016#11-GCC,Total node count,24980.0
 2016#11-GCC,Total edge count,35947.0
-2016#11-GCC,Density,0.00011521928219544289
+2016#11-GCC,Density,0.0001152192821954
 2017#5,Total comment count,66433.0
 2017#5,Unique users,24959.0
 2017#5,Unique posts with comments,3148.0
@@ -37,14 +37,14 @@ network,metric_name,metric_value
 2017#5,Ratio of posts with multiple users commenting,2.3428852539663017
 2017#5,Total node count,24940.0
 2017#5,Total edge count,39896.0
-2017#5,Density,0.00012828735956953893
-2017#5,Assortativity,-0.10284246142186913
+2017#5,Density,0.0001282873595695
+2017#5,Assortativity,-0.1028424614218691
 2017#5,Community count,339.0
 2017#5,Community modularity,0.8018587735458229
 2017#5,Average internal vs external edge ratio,1.2337324231980056
 2017#5-GCC,Total node count,24271.0
 2017#5-GCC,Total edge count,39504.0
-2017#5-GCC,Density,0.00013412620034826162
+2017#5-GCC,Density,0.0001341262003482
 2017#12,Total comment count,60769.0
 2017#12,Unique users,24027.0
 2017#12,Unique posts with comments,2111.0
@@ -60,14 +60,14 @@ network,metric_name,metric_value
 2017#12,Ratio of posts with multiple users commenting,2.2387813643707344
 2017#12,Total node count,23525.0
 2017#12,Total edge count,35194.0
-2017#12,Density,0.00012719142193352718
-2017#12,Assortativity,-0.08682431496323449
+2017#12,Density,0.0001271914219335
+2017#12,Assortativity,-0.0868243149632344
 2017#12,Community count,380.0
 2017#12,Community modularity,0.8374134890789324
 2017#12,Average internal vs external edge ratio,1.2289965694754674
 2017#12-GCC,Total node count,22759.0
 2017#12-GCC,Total edge count,34749.0
-2017#12-GCC,Density,0.0001341791504459195
+2017#12-GCC,Density,0.0001341791504459
 2017#3,Total comment count,59817.0
 2017#3,Unique users,23687.0
 2017#3,Unique posts with comments,3528.0
@@ -80,17 +80,17 @@ network,metric_name,metric_value
 2017#3,Median posts per user,1.0
 2017#3,Median users per post,1.0
 2017#3,Ratio of users commenting on multiple posts,9.77017020867391
-2017#3,Ratio of posts with multiple users commenting,2.4617751706894895
+2017#3,Ratio of posts with multiple users commenting,2.461775170689489
 2017#3,Total node count,23304.0
 2017#3,Total edge count,34608.0
-2017#3,Density,0.00012745714640154755
-2017#3,Assortativity,-0.07160444401212772
+2017#3,Density,0.0001274571464015
+2017#3,Assortativity,-0.0716044440121277
 2017#3,Community count,383.0
 2017#3,Community modularity,0.8335764629587792
-2017#3,Average internal vs external edge ratio,1.2261234505921441
+2017#3,Average internal vs external edge ratio,1.226123450592144
 2017#3-GCC,Total node count,22505.0
 2017#3-GCC,Total edge count,34136.0
-2017#3-GCC,Density,0.00013480434454151793
+2017#3-GCC,Density,0.0001348043445415
 2017#1,Total comment count,54656.0
 2017#1,Unique users,22027.0
 2017#1,Unique posts with comments,3701.0
@@ -102,18 +102,18 @@ network,metric_name,metric_value
 2017#1,Maximum user reply counts,27.0
 2017#1,Median posts per user,1.0
 2017#1,Median users per post,1.0
-2017#1,Ratio of users commenting on multiple posts,10.241992167888343
+2017#1,Ratio of users commenting on multiple posts,10.241992167888345
 2017#1,Ratio of posts with multiple users commenting,3.266726913679419
 2017#1,Total node count,22286.0
 2017#1,Total edge count,33167.0
-2017#1,Density,0.00013356461659994308
-2017#1,Assortativity,-0.09020618193487501
+2017#1,Density,0.0001335646165999
+2017#1,Assortativity,-0.090206181934875
 2017#1,Community count,356.0
 2017#1,Community modularity,0.8253328552617641
 2017#1,Average internal vs external edge ratio,1.2521387314122177
 2017#1-GCC,Total node count,21564.0
 2017#1-GCC,Total edge count,32739.0
-2017#1-GCC,Density,0.0001408175874547156
+2017#1-GCC,Density,0.0001408175874547
 2017#11,Total comment count,49204.0
 2017#11,Unique users,22457.0
 2017#11,Unique posts with comments,2378.0
@@ -129,14 +129,14 @@ network,metric_name,metric_value
 2017#11,Ratio of posts with multiple users commenting,2.4075305315463487
 2017#11,Total node count,22187.0
 2017#11,Total edge count,31427.0
-2017#11,Density,0.00012768954198516611
-2017#11,Assortativity,-0.10602992897578731
+2017#11,Density,0.0001276895419851
+2017#11,Assortativity,-0.1060299289757873
 2017#11,Community count,332.0
 2017#11,Community modularity,0.8464028314170223
-2017#11,Average internal vs external edge ratio,1.3338329661895643
+2017#11,Average internal vs external edge ratio,1.3338329661895645
 2017#11-GCC,Total node count,21524.0
 2017#11-GCC,Total edge count,31029.0
-2017#11-GCC,Density,0.00013395902749018494
+2017#11-GCC,Density,0.0001339590274901
 2016#12,Total comment count,51720.0
 2016#12,Unique users,22204.0
 2016#12,Unique posts with comments,3525.0
@@ -152,14 +152,14 @@ network,metric_name,metric_value
 2016#12,Ratio of posts with multiple users commenting,2.72208750298849
 2016#12,Total node count,22379.0
 2016#12,Total edge count,31880.0
-2016#12,Density,0.00012731699000383112
-2016#12,Assortativity,-0.07457920026967504
+2016#12,Density,0.0001273169900038
+2016#12,Assortativity,-0.074579200269675
 2016#12,Community count,451.0
 2016#12,Community modularity,0.850566392568322
 2016#12,Average internal vs external edge ratio,1.2084505983267322
 2016#12-GCC,Total node count,21437.0
 2016#12-GCC,Total edge count,31330.0
-2016#12-GCC,Density,0.00013635863157493314
+2016#12-GCC,Density,0.0001363586315749
 2017#10,Total comment count,52064.0
 2017#10,Unique users,22774.0
 2017#10,Unique posts with comments,2313.0
@@ -167,7 +167,7 @@ network,metric_name,metric_value
 2017#10,Total comments that are replies,52044.0
 2017#10,Valid user to user replies,39334.0
 2017#10,Unique user to user reply pairs,31635.0
-2017#10,Average user reply counts,1.2433696854749485
+2017#10,Average user reply counts,1.2433696854749483
 2017#10,Maximum user reply counts,30.0
 2017#10,Median posts per user,1.0
 2017#10,Median users per post,1.0
@@ -175,14 +175,14 @@ network,metric_name,metric_value
 2017#10,Ratio of posts with multiple users commenting,2.2226831207438904
 2017#10,Total node count,21753.0
 2017#10,Total edge count,31230.0
-2017#10,Density,0.000132002946518797
-2017#10,Assortativity,-0.08600750324017928
+2017#10,Density,0.0001320029465187
+2017#10,Assortativity,-0.0860075032401792
 2017#10,Community count,346.0
 2017#10,Community modularity,0.8458490850150971
 2017#10,Average internal vs external edge ratio,1.2891909356157831
 2017#10-GCC,Total node count,21076.0
 2017#10-GCC,Total edge count,30836.0
-2017#10-GCC,Density,0.0001388456440871392
+2017#10-GCC,Density,0.0001388456440871
 2018#3,Total comment count,48877.0
 2018#3,Unique users,21255.0
 2018#3,Unique posts with comments,2041.0
@@ -194,18 +194,18 @@ network,metric_name,metric_value
 2018#3,Maximum user reply counts,24.0
 2018#3,Median posts per user,1.0
 2018#3,Median users per post,1.0
-2018#3,Ratio of users commenting on multiple posts,10.051335466111153
-2018#3,Ratio of posts with multiple users commenting,2.2654564392530316
+2018#3,Ratio of users commenting on multiple posts,10.051335466111151
+2018#3,Ratio of posts with multiple users commenting,2.265456439253032
 2018#3,Total node count,21536.0
 2018#3,Total edge count,31616.0
-2018#3,Density,0.0001363411647854783
-2018#3,Assortativity,-0.11251018865541382
+2018#3,Density,0.0001363411647854
+2018#3,Assortativity,-0.1125101886554138
 2018#3,Community count,298.0
 2018#3,Community modularity,0.8412675647090745
 2018#3,Average internal vs external edge ratio,1.267245364632041
 2018#3-GCC,Total node count,20966.0
 2018#3-GCC,Total edge count,31287.0
-2018#3-GCC,Density,0.00014235852174914655
+2018#3-GCC,Density,0.0001423585217491
 2017#7,Total comment count,46615.0
 2017#7,Unique users,20888.0
 2017#7,Unique posts with comments,2574.0
@@ -217,18 +217,18 @@ network,metric_name,metric_value
 2017#7,Maximum user reply counts,44.0
 2017#7,Median posts per user,1.0
 2017#7,Median users per post,1.0
-2017#7,Ratio of users commenting on multiple posts,9.481415535277097
+2017#7,Ratio of users commenting on multiple posts,9.481415535277096
 2017#7,Ratio of posts with multiple users commenting,2.8711328733585577
 2017#7,Total node count,21265.0
 2017#7,Total edge count,30698.0
-2017#7,Density,0.00013577809989213122
-2017#7,Assortativity,-0.08425797685135386
+2017#7,Density,0.0001357780998921
+2017#7,Assortativity,-0.0842579768513538
 2017#7,Community count,258.0
 2017#7,Community modularity,0.8460826966300967
 2017#7,Average internal vs external edge ratio,1.4901457209625366
 2017#7-GCC,Total node count,20807.0
 2017#7-GCC,Total edge count,30436.0
-2017#7-GCC,Density,0.00014061106892866308
+2017#7-GCC,Density,0.0001406110689286
 2017#6,Total comment count,49134.0
 2017#6,Unique users,21124.0
 2017#6,Unique posts with comments,2505.0
@@ -241,17 +241,17 @@ network,metric_name,metric_value
 2017#6,Median posts per user,1.0
 2017#6,Median users per post,1.0
 2017#6,Ratio of users commenting on multiple posts,9.524334656668136
-2017#6,Ratio of posts with multiple users commenting,2.5988825172768713
+2017#6,Ratio of posts with multiple users commenting,2.5988825172768717
 2017#6,Total node count,21224.0
 2017#6,Total edge count,31167.0
-2017#6,Density,0.00013838562694119287
-2017#6,Assortativity,-0.10391704666307786
+2017#6,Density,0.0001383856269411
+2017#6,Assortativity,-0.1039170466630778
 2017#6,Community count,319.0
 2017#6,Community modularity,0.835985420760948
 2017#6,Average internal vs external edge ratio,1.3212337515727826
 2017#6-GCC,Total node count,20611.0
 2017#6-GCC,Total edge count,30816.0
-2017#6-GCC,Density,0.00014508723560722122
+2017#6-GCC,Density,0.0001450872356072
 2018#2,Total comment count,45679.0
 2018#2,Unique users,20539.0
 2018#2,Unique posts with comments,1806.0
@@ -267,14 +267,14 @@ network,metric_name,metric_value
 2018#2,Ratio of posts with multiple users commenting,2.3078412391093903
 2018#2,Total node count,20806.0
 2018#2,Total edge count,30018.0
-2018#2,Density,0.00013869328498427572
-2018#2,Assortativity,-0.09827420272566549
+2018#2,Density,0.0001386932849842
+2018#2,Assortativity,-0.0982742027256654
 2018#2,Community count,243.0
 2018#2,Community modularity,0.8415124063391758
 2018#2,Average internal vs external edge ratio,1.3475005937418756
 2018#2-GCC,Total node count,20386.0
 2018#2-GCC,Total edge count,29779.0
-2018#2-GCC,Density,0.00014331688815476221
+2018#2-GCC,Density,0.0001433168881547
 2017#4,Total comment count,45597.0
 2017#4,Unique users,20229.0
 2017#4,Unique posts with comments,2974.0
@@ -290,14 +290,14 @@ network,metric_name,metric_value
 2017#4,Ratio of posts with multiple users commenting,2.691094302330001
 2017#4,Total node count,20517.0
 2017#4,Total edge count,28999.0
-2017#4,Density,0.00013778643663938772
+2017#4,Density,0.0001377864366393
 2017#4,Assortativity,-0.1066153917641216
 2017#4,Community count,315.0
 2017#4,Community modularity,0.850469860917371
 2017#4,Average internal vs external edge ratio,1.3735550351066714
 2017#4-GCC,Total node count,19884.0
 2017#4-GCC,Total edge count,28628.0
-2017#4-GCC,Density,0.00014482226557447167
+2017#4-GCC,Density,0.0001448222655744
 2017#9,Total comment count,43257.0
 2017#9,Unique users,20196.0
 2017#9,Unique posts with comments,2457.0
@@ -310,17 +310,17 @@ network,metric_name,metric_value
 2017#9,Median posts per user,1.0
 2017#9,Median users per post,1.0
 2017#9,Ratio of users commenting on multiple posts,9.529660203493952
-2017#9,Ratio of posts with multiple users commenting,2.5839892493760797
+2017#9,Ratio of posts with multiple users commenting,2.58398924937608
 2017#9,Total node count,20334.0
 2017#9,Total edge count,28570.0
-2017#9,Density,0.0001382025181195377
-2017#9,Assortativity,-0.10953461760065018
+2017#9,Density,0.0001382025181195
+2017#9,Assortativity,-0.1095346176006501
 2017#9,Community count,324.0
 2017#9,Community modularity,0.8505511511355283
 2017#9,Average internal vs external edge ratio,1.3378884628464427
 2017#9-GCC,Total node count,19687.0
 2017#9-GCC,Total edge count,28183.0
-2017#9-GCC,Density,0.0001454387704195675
+2017#9-GCC,Density,0.0001454387704195
 2018#1,Total comment count,47533.0
 2018#1,Unique users,20290.0
 2018#1,Unique posts with comments,2067.0
@@ -336,14 +336,14 @@ network,metric_name,metric_value
 2018#1,Ratio of posts with multiple users commenting,2.355717159213987
 2018#1,Total node count,19858.0
 2018#1,Total edge count,29411.0
-2018#1,Density,0.00014917314453494058
-2018#1,Assortativity,-0.08149015374926577
+2018#1,Density,0.0001491731445349
+2018#1,Assortativity,-0.0814901537492657
 2018#1,Community count,279.0
 2018#1,Community modularity,0.8333498634870334
 2018#1,Average internal vs external edge ratio,1.3062650004789709
 2018#1-GCC,Total node count,19312.0
 2018#1-GCC,Total edge count,29086.0
-2018#1-GCC,Density,0.00015598469168402417
+2018#1-GCC,Density,0.000155984691684
 2017#8,Total comment count,46032.0
 2017#8,Unique users,19822.0
 2017#8,Unique posts with comments,2371.0
@@ -359,14 +359,14 @@ network,metric_name,metric_value
 2017#8,Ratio of posts with multiple users commenting,2.9191290207432674
 2017#8,Total node count,19925.0
 2017#8,Total edge count,28390.0
-2017#8,Density,0.00014302782190895038
-2017#8,Assortativity,-0.11624203273124596
+2017#8,Density,0.0001430278219089
+2017#8,Assortativity,-0.1162420327312459
 2017#8,Community count,341.0
 2017#8,Community modularity,0.8493430848210239
 2017#8,Average internal vs external edge ratio,1.3435790310094569
 2017#8-GCC,Total node count,19269.0
 2017#8-GCC,Total edge count,28014.0
-2017#8-GCC,Density,0.00015090697223502406
+2017#8-GCC,Density,0.000150906972235
 2017#2,Total comment count,41098.0
 2017#2,Unique users,18155.0
 2017#2,Unique posts with comments,2925.0
@@ -382,14 +382,14 @@ network,metric_name,metric_value
 2017#2,Ratio of posts with multiple users commenting,3.293186220837194
 2017#2,Total node count,18492.0
 2017#2,Total edge count,26184.0
-2017#2,Density,0.00015315165864053477
-2017#2,Assortativity,-0.08650978407125975
+2017#2,Density,0.0001531516586405
+2017#2,Assortativity,-0.0865097840712597
 2017#2,Community count,344.0
 2017#2,Community modularity,0.8565490213944961
 2017#2,Average internal vs external edge ratio,1.3202525839953083
 2017#2-GCC,Total node count,17796.0
 2017#2-GCC,Total edge count,25773.0
-2017#2-GCC,Density,0.00016277008115010296
+2017#2-GCC,Density,0.0001627700811501
 2018#9,Total comment count,43452.0
 2018#9,Unique users,17973.0
 2018#9,Unique posts with comments,1809.0
@@ -397,7 +397,7 @@ network,metric_name,metric_value
 2018#9,Total comments that are replies,43437.0
 2018#9,Valid user to user replies,32935.0
 2018#9,Unique user to user reply pairs,25650.0
-2018#9,Average user reply counts,1.2840155945419103
+2018#9,Average user reply counts,1.2840155945419105
 2018#9,Maximum user reply counts,57.0
 2018#9,Median posts per user,1.0
 2018#9,Median users per post,1.0
@@ -405,14 +405,14 @@ network,metric_name,metric_value
 2018#9,Ratio of posts with multiple users commenting,2.556048022720427
 2018#9,Total node count,18066.0
 2018#9,Total edge count,27058.0
-2018#9,Density,0.00016581572583033413
-2018#9,Assortativity,-0.054518471595693785
+2018#9,Density,0.0001658157258303
+2018#9,Assortativity,-0.0545184715956937
 2018#9,Community count,214.0
 2018#9,Community modularity,0.8180392178390995
 2018#9,Average internal vs external edge ratio,1.2947725882505612
 2018#9-GCC,Total node count,17693.0
 2018#9-GCC,Total edge count,26843.0
-2018#9-GCC,Density,0.00017150731139444535
+2018#9-GCC,Density,0.0001715073113944
 2016#10,Total comment count,40628.0
 2016#10,Unique users,17583.0
 2016#10,Unique posts with comments,3233.0
@@ -425,17 +425,17 @@ network,metric_name,metric_value
 2016#10,Median posts per user,1.0
 2016#10,Median users per post,1.0
 2016#10,Ratio of users commenting on multiple posts,9.581140812460534
-2016#10,Ratio of posts with multiple users commenting,3.3803409808461375
+2016#10,Ratio of posts with multiple users commenting,3.380340980846137
 2016#10,Total node count,18175.0
 2016#10,Total edge count,25870.0
-2016#10,Density,0.0001566395695953937
+2016#10,Density,0.0001566395695953
 2016#10,Assortativity,-0.0773680415757354
 2016#10,Community count,316.0
 2016#10,Community modularity,0.8458882167094525
 2016#10,Average internal vs external edge ratio,1.3100138851070395
 2016#10-GCC,Total node count,17512.0
 2016#10-GCC,Total edge count,25462.0
-2016#10-GCC,Density,0.00016606412169976092
+2016#10-GCC,Density,0.0001660641216997
 2018#7,Total comment count,40965.0
 2018#7,Unique users,17578.0
 2018#7,Unique posts with comments,1761.0
@@ -451,14 +451,14 @@ network,metric_name,metric_value
 2018#7,Ratio of posts with multiple users commenting,2.5723178322958624
 2018#7,Total node count,17710.0
 2018#7,Total edge count,25358.0
-2018#7,Density,0.00016170833073071434
-2018#7,Assortativity,-0.12960154468044058
+2018#7,Density,0.0001617083307307
+2018#7,Assortativity,-0.1296015446804405
 2018#7,Community count,265.0
 2018#7,Community modularity,0.8552016032229044
 2018#7,Average internal vs external edge ratio,1.4410025859587354
 2018#7-GCC,Total node count,17216.0
 2018#7-GCC,Total edge count,25068.0
-2018#7-GCC,Density,0.00016916495621200063
+2018#7-GCC,Density,0.000169164956212
 2016#8,Total comment count,40415.0
 2016#8,Unique users,16802.0
 2016#8,Unique posts with comments,2654.0
@@ -466,22 +466,22 @@ network,metric_name,metric_value
 2016#8,Total comments that are replies,40399.0
 2016#8,Valid user to user replies,28874.0
 2016#8,Unique user to user reply pairs,22841.0
-2016#8,Average user reply counts,1.2641302920187383
+2016#8,Average user reply counts,1.2641302920187385
 2016#8,Maximum user reply counts,18.0
 2016#8,Median posts per user,1.0
 2016#8,Median users per post,1.0
-2016#8,Ratio of users commenting on multiple posts,9.570750067210323
+2016#8,Ratio of users commenting on multiple posts,9.570750067210325
 2016#8,Ratio of posts with multiple users commenting,3.3470741105833857
 2016#8,Total node count,17576.0
 2016#8,Total edge count,25835.0
-2016#8,Density,0.00016727193619127596
-2016#8,Assortativity,-0.06870832748034478
+2016#8,Density,0.0001672719361912
+2016#8,Assortativity,-0.0687083274803447
 2016#8,Community count,278.0
 2016#8,Community modularity,0.8203013266376645
 2016#8,Average internal vs external edge ratio,1.3444355645412949
 2016#8-GCC,Total node count,17050.0
 2016#8-GCC,Total edge count,25525.0
-2016#8-GCC,Density,0.00017561938514638417
+2016#8-GCC,Density,0.0001756193851463
 2018#4,Total comment count,38144.0
 2018#4,Unique users,17030.0
 2018#4,Unique posts with comments,1831.0
@@ -497,14 +497,14 @@ network,metric_name,metric_value
 2018#4,Ratio of posts with multiple users commenting,2.7651922088841143
 2018#4,Total node count,17256.0
 2018#4,Total edge count,24425.0
-2018#4,Density,0.00016406255562509883
-2018#4,Assortativity,-0.08511337476323258
+2018#4,Density,0.000164062555625
+2018#4,Assortativity,-0.0851133747632325
 2018#4,Community count,287.0
 2018#4,Community modularity,0.8463111726674517
 2018#4,Average internal vs external edge ratio,1.366795142021253
 2018#4-GCC,Total node count,16702.0
 2018#4-GCC,Total edge count,24097.0
-2018#4-GCC,Density,0.00017277544409874778
+2018#4-GCC,Density,0.0001727754440987
 2018#8,Total comment count,36152.0
 2018#8,Unique users,16520.0
 2018#8,Unique posts with comments,1890.0
@@ -520,14 +520,14 @@ network,metric_name,metric_value
 2018#8,Ratio of posts with multiple users commenting,2.8150449559855013
 2018#8,Total node count,16865.0
 2018#8,Total edge count,23355.0
-2018#8,Density,0.00016423394621086865
-2018#8,Assortativity,-0.11073986105142483
+2018#8,Density,0.0001642339462108
+2018#8,Assortativity,-0.1107398610514248
 2018#8,Community count,304.0
 2018#8,Community modularity,0.8509916045518662
 2018#8,Average internal vs external edge ratio,1.354041101656001
 2018#8-GCC,Total node count,16298.0
 2018#8-GCC,Total edge count,23025.0
-2018#8-GCC,Density,0.00017337547164246315
+2018#8-GCC,Density,0.0001733754716424
 2016#1,Total comment count,39245.0
 2016#1,Unique users,16463.0
 2016#1,Unique posts with comments,2756.0
@@ -539,18 +539,18 @@ network,metric_name,metric_value
 2016#1,Maximum user reply counts,55.0
 2016#1,Median posts per user,1.0
 2016#1,Median users per post,1.0
-2016#1,Ratio of users commenting on multiple posts,11.431531687100673
+2016#1,Ratio of users commenting on multiple posts,11.431531687100671
 2016#1,Ratio of posts with multiple users commenting,4.636504921429805
 2016#1,Total node count,16861.0
 2016#1,Total edge count,24818.0
-2016#1,Density,0.00017460467883974635
-2016#1,Assortativity,-0.08399646067721386
+2016#1,Density,0.0001746046788397
+2016#1,Assortativity,-0.0839964606772138
 2016#1,Community count,327.0
 2016#1,Community modularity,0.8182954550094883
 2016#1,Average internal vs external edge ratio,1.220985443286631
 2016#1-GCC,Total node count,16237.0
 2016#1-GCC,Total edge count,24456.0
-2016#1-GCC,Density,0.0001855370247645043
+2016#1-GCC,Density,0.0001855370247645
 2016#3,Total comment count,43657.0
 2016#3,Unique users,17627.0
 2016#3,Unique posts with comments,3021.0
@@ -558,7 +558,7 @@ network,metric_name,metric_value
 2016#3,Total comments that are replies,43648.0
 2016#3,Valid user to user replies,29549.0
 2016#3,Unique user to user reply pairs,23087.0
-2016#3,Average user reply counts,1.2798977779702863
+2016#3,Average user reply counts,1.2798977779702865
 2016#3,Maximum user reply counts,72.0
 2016#3,Median posts per user,1.0
 2016#3,Median users per post,1.0
@@ -566,14 +566,14 @@ network,metric_name,metric_value
 2016#3,Ratio of posts with multiple users commenting,4.843775165082944
 2016#3,Total node count,17017.0
 2016#3,Total edge count,24689.0
-2016#3,Density,0.00017052694809269935
-2016#3,Assortativity,-0.06739132910572293
+2016#3,Density,0.0001705269480926
+2016#3,Assortativity,-0.0673913291057229
 2016#3,Community count,429.0
 2016#3,Community modularity,0.831659720936192
 2016#3,Average internal vs external edge ratio,1.2055418824853374
 2016#3-GCC,Total node count,16095.0
 2016#3-GCC,Total edge count,24133.0
-2016#3-GCC,Density,0.00018633152163317614
+2016#3-GCC,Density,0.0001863315216331
 2016#5,Total comment count,39445.0
 2016#5,Unique users,16869.0
 2016#5,Unique posts with comments,2751.0
@@ -586,17 +586,17 @@ network,metric_name,metric_value
 2016#5,Median posts per user,1.0
 2016#5,Median users per post,1.0
 2016#5,Ratio of users commenting on multiple posts,10.832238282961017
-2016#5,Ratio of posts with multiple users commenting,3.5567236092860273
+2016#5,Ratio of posts with multiple users commenting,3.5567236092860277
 2016#5,Total node count,16686.0
 2016#5,Total edge count,23384.0
-2016#5,Density,0.00016798493968752314
-2016#5,Assortativity,-0.06909762843986222
+2016#5,Density,0.0001679849396875
+2016#5,Assortativity,-0.0690976284398622
 2016#5,Community count,384.0
 2016#5,Community modularity,0.8423367835227346
-2016#5,Average internal vs external edge ratio,1.2331518205137357
+2016#5,Average internal vs external edge ratio,1.2331518205137355
 2016#5-GCC,Total node count,15883.0
 2016#5-GCC,Total edge count,22904.0
-2016#5-GCC,Density,0.00018159488146632762
+2016#5-GCC,Density,0.0001815948814663
 2018#5,Total comment count,38398.0
 2018#5,Unique users,16049.0
 2018#5,Unique posts with comments,1781.0
@@ -612,14 +612,14 @@ network,metric_name,metric_value
 2018#5,Ratio of posts with multiple users commenting,3.0808352486674164
 2018#5,Total node count,16312.0
 2018#5,Total edge count,24176.0
-2018#5,Density,0.00018173000651960908
-2018#5,Assortativity,-0.12748996645064545
+2018#5,Density,0.0001817300065196
+2018#5,Assortativity,-0.1274899664506454
 2018#5,Community count,233.0
 2018#5,Community modularity,0.8424085454439931
 2018#5,Average internal vs external edge ratio,1.3650785449433385
 2018#5-GCC,Total node count,15834.0
 2018#5-GCC,Total edge count,23875.0
-2018#5-GCC,Density,0.00019046690446669103
+2018#5-GCC,Density,0.0001904669044666
 2016#7,Total comment count,36133.0
 2016#7,Unique users,16035.0
 2016#7,Unique posts with comments,2452.0
@@ -635,14 +635,14 @@ network,metric_name,metric_value
 2016#7,Ratio of posts with multiple users commenting,3.472550316545403
 2016#7,Total node count,16417.0
 2016#7,Total edge count,23184.0
-2016#7,Density,0.0001720510083150863
-2016#7,Assortativity,-0.08088050996025291
+2016#7,Density,0.000172051008315
+2016#7,Assortativity,-0.0808805099602529
 2016#7,Community count,298.0
 2016#7,Community modularity,0.8466436251477295
 2016#7,Average internal vs external edge ratio,1.3550030261301722
 2016#7-GCC,Total node count,15824.0
 2016#7-GCC,Total edge count,22833.0
-2016#7-GCC,Density,0.00018238447609286428
+2016#7-GCC,Density,0.0001823844760928
 2016#9,Total comment count,35806.0
 2016#9,Unique users,15591.0
 2016#9,Unique posts with comments,2993.0
@@ -658,14 +658,14 @@ network,metric_name,metric_value
 2016#9,Ratio of posts with multiple users commenting,3.5238729313296555
 2016#9,Total node count,16331.0
 2016#9,Total edge count,23075.0
-2016#9,Density,0.00017305045352530396
-2016#9,Assortativity,-0.08359340879139064
+2016#9,Density,0.0001730504535253
+2016#9,Assortativity,-0.0835934087913906
 2016#9,Community count,296.0
 2016#9,Community modularity,0.8578262561661195
 2016#9,Average internal vs external edge ratio,1.409254706393196
 2016#9-GCC,Total node count,15755.0
 2016#9-GCC,Total edge count,22735.0
-2016#9-GCC,Density,0.00018319588136013937
+2016#9-GCC,Density,0.0001831958813601
 2018#10,Total comment count,36631.0
 2018#10,Unique users,15505.0
 2018#10,Unique posts with comments,1987.0
@@ -677,18 +677,18 @@ network,metric_name,metric_value
 2018#10,Maximum user reply counts,32.0
 2018#10,Median posts per user,1.0
 2018#10,Median users per post,1.0
-2018#10,Ratio of users commenting on multiple posts,9.723332001598083
+2018#10,Ratio of users commenting on multiple posts,9.723332001598084
 2018#10,Ratio of posts with multiple users commenting,2.9314822213343987
 2018#10,Total node count,15880.0
 2018#10,Total edge count,23341.0
-2018#10,Density,0.0001851295764267652
-2018#10,Assortativity,-0.07168888130512996
+2018#10,Density,0.0001851295764267
+2018#10,Assortativity,-0.0716888813051299
 2018#10,Community count,212.0
 2018#10,Community modularity,0.8329442134506536
 2018#10,Average internal vs external edge ratio,1.3973447133899957
 2018#10-GCC,Total node count,15523.0
 2018#10-GCC,Total edge count,23142.0
-2018#10-GCC,Density,0.00019209123482017942
+2018#10-GCC,Density,0.0001920912348201
 2016#6,Total comment count,35901.0
 2016#6,Unique users,15575.0
 2016#6,Unique posts with comments,2501.0
@@ -704,14 +704,14 @@ network,metric_name,metric_value
 2016#6,Ratio of posts with multiple users commenting,3.339363418569403
 2016#6,Total node count,15962.0
 2016#6,Total edge count,22661.0
-2016#6,Density,0.0001778941482481014
-2016#6,Assortativity,-0.08199583793585079
+2016#6,Density,0.0001778941482481
+2016#6,Assortativity,-0.0819958379358507
 2016#6,Community count,278.0
 2016#6,Community modularity,0.8464346716892642
 2016#6,Average internal vs external edge ratio,1.3356303563381682
 2016#6-GCC,Total node count,15421.0
 2016#6-GCC,Total edge count,22346.0
-2016#6-GCC,Density,0.00018794590999808152
+2016#6-GCC,Density,0.000187945909998
 2018#6,Total comment count,32932.0
 2018#6,Unique users,15424.0
 2018#6,Unique posts with comments,1628.0
@@ -724,17 +724,17 @@ network,metric_name,metric_value
 2018#6,Median posts per user,1.0
 2018#6,Median users per post,1.0
 2018#6,Ratio of users commenting on multiple posts,9.108496732026143
-2018#6,Ratio of posts with multiple users commenting,2.8862745098039215
+2018#6,Ratio of posts with multiple users commenting,2.886274509803921
 2018#6,Total node count,15519.0
 2018#6,Total edge count,20991.0
-2018#6,Density,0.00017432659346079197
-2018#6,Assortativity,-0.13766622546903498
+2018#6,Density,0.0001743265934607
+2018#6,Assortativity,-0.1376662254690349
 2018#6,Community count,277.0
 2018#6,Community modularity,0.8640665857263332
-2018#6,Average internal vs external edge ratio,1.4688194403680495
+2018#6,Average internal vs external edge ratio,1.4688194403680497
 2018#6-GCC,Total node count,15007.0
 2018#6-GCC,Total edge count,20698.0
-2018#6-GCC,Density,0.00018382287475050184
+2018#6-GCC,Density,0.0001838228747505
 2015#12,Total comment count,36309.0
 2015#12,Unique users,14698.0
 2015#12,Unique posts with comments,2384.0
@@ -750,14 +750,14 @@ network,metric_name,metric_value
 2015#12,Ratio of posts with multiple users commenting,4.25648429332404
 2015#12,Total node count,15261.0
 2015#12,Total edge count,22728.0
-2015#12,Density,0.0001951882590243009
-2015#12,Assortativity,-0.09813514613290342
+2015#12,Density,0.0001951882590243
+2015#12,Assortativity,-0.0981351461329034
 2015#12,Community count,282.0
 2015#12,Community modularity,0.8239528134847013
 2015#12,Average internal vs external edge ratio,1.379443048603576
 2015#12-GCC,Total node count,14719.0
 2015#12-GCC,Total edge count,22409.0
-2015#12-GCC,Density,0.00020688326825082435
+2015#12-GCC,Density,0.0002068832682508
 2016#2,Total comment count,35998.0
 2016#2,Unique users,15099.0
 2016#2,Unique posts with comments,2678.0
@@ -769,18 +769,18 @@ network,metric_name,metric_value
 2016#2,Maximum user reply counts,23.0
 2016#2,Median posts per user,1.0
 2016#2,Median users per post,1.0
-2016#2,Ratio of users commenting on multiple posts,11.203438395415473
+2016#2,Ratio of users commenting on multiple posts,11.203438395415471
 2016#2,Ratio of posts with multiple users commenting,5.02865329512894
 2016#2,Total node count,15332.0
 2016#2,Total edge count,22130.0
-2016#2,Density,0.0001882964426879488
+2016#2,Density,0.0001882964426879
 2016#2,Assortativity,-0.0810796950349131
 2016#2,Community count,350.0
 2016#2,Community modularity,0.8299833731361217
-2016#2,Average internal vs external edge ratio,1.3232418737182075
+2016#2,Average internal vs external edge ratio,1.3232418737182077
 2016#2-GCC,Total node count,14615.0
 2016#2-GCC,Total edge count,21701.0
-2016#2-GCC,Density,0.00020320847653057273
+2016#2-GCC,Density,0.0002032084765305
 2015#11,Total comment count,34134.0
 2015#11,Unique users,13711.0
 2015#11,Unique posts with comments,3522.0
@@ -792,18 +792,18 @@ network,metric_name,metric_value
 2015#11,Maximum user reply counts,36.0
 2015#11,Median posts per user,1.0
 2015#11,Median users per post,1.0
-2015#11,Ratio of users commenting on multiple posts,10.113591072140295
+2015#11,Ratio of users commenting on multiple posts,10.113591072140297
 2015#11,Ratio of posts with multiple users commenting,4.713033080908729
 2015#11,Total node count,15140.0
 2015#11,Total edge count,21489.0
-2015#11,Density,0.00018750944026132824
-2015#11,Assortativity,-0.07471859196239194
+2015#11,Density,0.0001875094402613
+2015#11,Assortativity,-0.0747185919623919
 2015#11,Community count,295.0
 2015#11,Community modularity,0.8228209864452479
 2015#11,Average internal vs external edge ratio,1.3915365421894574
 2015#11-GCC,Total node count,14569.0
 2015#11-GCC,Total edge count,21153.0
-2015#11-GCC,Density,0.00019932982660594934
+2015#11-GCC,Density,0.0001993298266059
 2015#8,Total comment count,31018.0
 2015#8,Unique users,13413.0
 2015#8,Unique posts with comments,2204.0
@@ -819,14 +819,14 @@ network,metric_name,metric_value
 2015#8,Ratio of posts with multiple users commenting,4.493705528188287
 2015#8,Total node count,13988.0
 2015#8,Total edge count,19848.0
-2015#8,Density,0.00020289275925749838
-2015#8,Assortativity,-0.10603144424134892
+2015#8,Density,0.0002028927592574
+2015#8,Assortativity,-0.1060314442413489
 2015#8,Community count,238.0
 2015#8,Community modularity,0.8336023107000691
 2015#8,Average internal vs external edge ratio,1.3319905546557909
 2015#8-GCC,Total node count,13554.0
 2015#8-GCC,Total edge count,19594.0
-2015#8-GCC,Density,0.0002133291386078805
+2015#8-GCC,Density,0.0002133291386078
 2016#4,Total comment count,34363.0
 2016#4,Unique users,13830.0
 2016#4,Unique posts with comments,2486.0
@@ -839,17 +839,17 @@ network,metric_name,metric_value
 2016#4,Median posts per user,1.0
 2016#4,Median users per post,1.0
 2016#4,Ratio of users commenting on multiple posts,11.65405847474954
-2016#4,Ratio of posts with multiple users commenting,3.6648947045593947
+2016#4,Ratio of posts with multiple users commenting,3.6648947045593943
 2016#4,Total node count,13638.0
 2016#4,Total edge count,19389.0
-2016#4,Density,0.00020850471471325473
-2016#4,Assortativity,-0.061304692464685104
+2016#4,Density,0.0002085047147132
+2016#4,Assortativity,-0.0613046924646851
 2016#4,Community count,333.0
 2016#4,Community modularity,0.8299001614748035
 2016#4,Average internal vs external edge ratio,1.2152855644682714
 2016#4-GCC,Total node count,12961.0
 2016#4-GCC,Total edge count,18982.0
-2016#4-GCC,Density,0.00022601041491044835
+2016#4-GCC,Density,0.0002260104149104
 2015#10,Total comment count,29666.0
 2015#10,Unique users,12511.0
 2015#10,Unique posts with comments,2376.0
@@ -865,14 +865,14 @@ network,metric_name,metric_value
 2015#10,Ratio of posts with multiple users commenting,5.057405281285878
 2015#10,Total node count,13012.0
 2015#10,Total edge count,18537.0
-2015#10,Density,0.00021898517471430392
-2015#10,Assortativity,-0.08038368177572601
+2015#10,Density,0.0002189851747143
+2015#10,Assortativity,-0.080383681775726
 2015#10,Community count,269.0
 2015#10,Community modularity,0.8328533005060664
 2015#10,Average internal vs external edge ratio,1.3620197061252886
 2015#10-GCC,Total node count,12503.0
 2015#10-GCC,Total edge count,18232.0
-2015#10-GCC,Density,0.00023327628052997884
+2015#10-GCC,Density,0.0002332762805299
 2015#7,Total comment count,25868.0
 2015#7,Unique users,11519.0
 2015#7,Unique posts with comments,2087.0
@@ -885,17 +885,17 @@ network,metric_name,metric_value
 2015#7,Median posts per user,1.0
 2015#7,Median users per post,1.0
 2015#7,Ratio of users commenting on multiple posts,10.030511060259345
-2015#7,Ratio of posts with multiple users commenting,4.7101449275362315
+2015#7,Ratio of posts with multiple users commenting,4.710144927536232
 2015#7,Total node count,12153.0
 2015#7,Total edge count,16742.0
-2015#7,Density,0.00022672847895498729
-2015#7,Assortativity,-0.07698961396641667
+2015#7,Density,0.0002267284789549
+2015#7,Assortativity,-0.0769896139664166
 2015#7,Community count,256.0
 2015#7,Community modularity,0.8452291339664978
 2015#7,Average internal vs external edge ratio,1.3747769718422342
 2015#7-GCC,Total node count,11675.0
 2015#7-GCC,Total edge count,16455.0
-2015#7-GCC,Density,0.00024146339584405618
+2015#7-GCC,Density,0.000241463395844
 2015#9,Total comment count,26666.0
 2015#9,Unique users,11471.0
 2015#9,Unique posts with comments,2465.0
@@ -911,14 +911,14 @@ network,metric_name,metric_value
 2015#9,Ratio of posts with multiple users commenting,4.950925580817493
 2015#9,Total node count,12092.0
 2015#9,Total edge count,17151.0
-2015#9,Density,0.00023461678697269054
-2015#9,Assortativity,-0.08054082269058503
+2015#9,Density,0.0002346167869726
+2015#9,Assortativity,-0.080540822690585
 2015#9,Community count,281.0
 2015#9,Community modularity,0.8321421498237547
-2015#9,Average internal vs external edge ratio,1.3476567692563919
+2015#9,Average internal vs external edge ratio,1.347656769256392
 2015#9-GCC,Total node count,11542.0
 2015#9-GCC,Total edge count,16825.0
-2015#9-GCC,Density,0.0002526158275099192
+2015#9-GCC,Density,0.0002526158275099
 2015#5,Total comment count,26625.0
 2015#5,Unique users,11527.0
 2015#5,Unique posts with comments,2172.0
@@ -930,18 +930,18 @@ network,metric_name,metric_value
 2015#5,Maximum user reply counts,14.0
 2015#5,Median posts per user,1.0
 2015#5,Median users per post,1.0
-2015#5,Ratio of users commenting on multiple posts,10.390498694192265
+2015#5,Ratio of users commenting on multiple posts,10.390498694192264
 2015#5,Ratio of posts with multiple users commenting,4.831488620818306
 2015#5,Total node count,11928.0
 2015#5,Total edge count,16651.0
-2015#5,Density,0.00023408385811360716
+2015#5,Density,0.0002340838581136
 2015#5,Assortativity,-0.0788982533350598
 2015#5,Community count,278.0
 2015#5,Community modularity,0.8315731497198925
 2015#5,Average internal vs external edge ratio,1.3481317585896198
 2015#5-GCC,Total node count,11404.0
 2015#5-GCC,Total edge count,16347.0
-2015#5-GCC,Density,0.00025141531271976925
+2015#5-GCC,Density,0.0002514153127197
 2015#4,Total comment count,23402.0
 2015#4,Unique users,10700.0
 2015#4,Unique posts with comments,1881.0
@@ -953,18 +953,18 @@ network,metric_name,metric_value
 2015#4,Maximum user reply counts,20.0
 2015#4,Median posts per user,1.0
 2015#4,Median users per post,1.0
-2015#4,Ratio of users commenting on multiple posts,10.679611650485437
+2015#4,Ratio of users commenting on multiple posts,10.679611650485436
 2015#4,Ratio of posts with multiple users commenting,5.472197705207414
 2015#4,Total node count,10871.0
 2015#4,Total edge count,14640.0
-2015#4,Density,0.00024778329996411036
-2015#4,Assortativity,-0.09873829401394395
+2015#4,Density,0.0002477832999641
+2015#4,Assortativity,-0.0987382940139439
 2015#4,Community count,297.0
 2015#4,Community modularity,0.8423980306086166
 2015#4,Average internal vs external edge ratio,1.3180882169953294
 2015#4-GCC,Total node count,10289.0
 2015#4-GCC,Total edge count,14294.0
-2015#4-GCC,Density,0.00027007205599541826
+2015#4-GCC,Density,0.0002700720559954
 2015#3,Total comment count,24629.0
 2015#3,Unique users,10183.0
 2015#3,Unique posts with comments,1929.0
@@ -980,14 +980,14 @@ network,metric_name,metric_value
 2015#3,Ratio of posts with multiple users commenting,4.9136599747297485
 2015#3,Total node count,10662.0
 2015#3,Total edge count,15242.0
-2015#3,Density,0.00026818552364384773
-2015#3,Assortativity,-0.08336374038198653
+2015#3,Density,0.0002681855236438
+2015#3,Assortativity,-0.0833637403819865
 2015#3,Community count,231.0
 2015#3,Community modularity,0.8342858319349228
 2015#3,Average internal vs external edge ratio,1.3329871024938886
 2015#3-GCC,Total node count,10239.0
 2015#3-GCC,Total edge count,15001.0
-2015#3-GCC,Density,0.00028620521213251385
+2015#3-GCC,Density,0.0002862052121325
 2015#6,Total comment count,23022.0
 2015#6,Unique users,9885.0
 2015#6,Unique posts with comments,2195.0
@@ -1003,231 +1003,273 @@ network,metric_name,metric_value
 2015#6,Ratio of posts with multiple users commenting,4.833706081812279
 2015#6,Total node count,10467.0
 2015#6,Total edge count,14387.0
-2015#6,Density,0.00026266202291456406
-2015#6,Assortativity,-0.07819826875452604
+2015#6,Density,0.0002626620229145
+2015#6,Assortativity,-0.078198268754526
 2015#6,Community count,225.0
 2015#6,Community modularity,0.8421062540791444
 2015#6,Average internal vs external edge ratio,1.3970576539982502
 2015#6-GCC,Total node count,10071.0
 2015#6-GCC,Total edge count,14166.0
-2015#6-GCC,Density,0.0002793670401914037
-2016#11-GCC,Assortativity,-0.06922870110956374
-2017#5-GCC,Assortativity,-0.10422657406664086
-2017#12-GCC,Assortativity,-0.08823926190466791
-2017#3-GCC,Assortativity,-0.07274471656583713
-2017#1-GCC,Assortativity,-0.09163468324280456
-2017#11-GCC,Assortativity,-0.10774170965665851
-2016#12-GCC,Assortativity,-0.07616670107124693
-2017#10-GCC,Assortativity,-0.08747229013286413
-2018#3-GCC,Assortativity,-0.11405537912960732
-2017#7-GCC,Assortativity,-0.08512974460524077
-2017#6-GCC,Assortativity,-0.10543252282082885
-2018#2-GCC,Assortativity,-0.09926241470666625
-2017#4-GCC,Assortativity,-0.10827673398649178
-2017#9-GCC,Assortativity,-0.11146687702550195
-2018#1-GCC,Assortativity,-0.08270701215429746
-2017#8-GCC,Assortativity,-0.11837852264636407
-2017#2-GCC,Assortativity,-0.08818452736038329
-2018#9-GCC,Assortativity,-0.055005468588564074
-2016#10-GCC,Assortativity,-0.07884523265405652
-2018#7-GCC,Assortativity,-0.13166862170876176
-2016#8-GCC,Assortativity,-0.06968169810312282
-2018#4-GCC,Assortativity,-0.08652974653852409
-2018#8-GCC,Assortativity,-0.11275811846753289
-2016#1-GCC,Assortativity,-0.08552463282985537
-2016#3-GCC,Assortativity,-0.06938314275183297
-2016#5-GCC,Assortativity,-0.07074576562490091
-2018#5-GCC,Assortativity,-0.12971240149153257
-2016#7-GCC,Assortativity,-0.08238577156526747
+2015#6-GCC,Density,0.0002793670401914
+2016#11-GCC,Assortativity,-0.0692287011095637
+2017#5-GCC,Assortativity,-0.1042265740666408
+2017#12-GCC,Assortativity,-0.0882392619046679
+2017#3-GCC,Assortativity,-0.0727447165658371
+2017#1-GCC,Assortativity,-0.0916346832428045
+2017#11-GCC,Assortativity,-0.1077417096566585
+2016#12-GCC,Assortativity,-0.0761667010712469
+2017#10-GCC,Assortativity,-0.0874722901328641
+2018#3-GCC,Assortativity,-0.1140553791296073
+2017#7-GCC,Assortativity,-0.0851297446052407
+2017#6-GCC,Assortativity,-0.1054325228208288
+2018#2-GCC,Assortativity,-0.0992624147066662
+2017#4-GCC,Assortativity,-0.1082767339864917
+2017#9-GCC,Assortativity,-0.1114668770255019
+2018#1-GCC,Assortativity,-0.0827070121542974
+2017#8-GCC,Assortativity,-0.118378522646364
+2017#2-GCC,Assortativity,-0.0881845273603832
+2018#9-GCC,Assortativity,-0.055005468588564
+2016#10-GCC,Assortativity,-0.0788452326540565
+2018#7-GCC,Assortativity,-0.1316686217087617
+2016#8-GCC,Assortativity,-0.0696816981031228
+2018#4-GCC,Assortativity,-0.086529746538524
+2018#8-GCC,Assortativity,-0.1127581184675328
+2016#1-GCC,Assortativity,-0.0855246328298553
+2016#3-GCC,Assortativity,-0.0693831427518329
+2016#5-GCC,Assortativity,-0.0707457656249009
+2018#5-GCC,Assortativity,-0.1297124014915325
+2016#7-GCC,Assortativity,-0.0823857715652674
 2016#9-GCC,Assortativity,-0.0850904640288649
-2018#10-GCC,Assortativity,-0.07242389643477405
-2016#6-GCC,Assortativity,-0.08339144482296221
-2018#6-GCC,Assortativity,-0.14030190265414616
-2015#12-GCC,Assortativity,-0.09994415808579026
-2016#2-GCC,Assortativity,-0.08304926735909318
-2015#11-GCC,Assortativity,-0.07601645227092617
-2015#8-GCC,Assortativity,-0.10766561250181929
-2016#4-GCC,Assortativity,-0.06285037391415814
-2015#10-GCC,Assortativity,-0.08202618080324753
-2015#7-GCC,Assortativity,-0.07858312329283212
-2015#9-GCC,Assortativity,-0.08243941965743826
+2018#10-GCC,Assortativity,-0.072423896434774
+2016#6-GCC,Assortativity,-0.0833914448229622
+2018#6-GCC,Assortativity,-0.1403019026541461
+2015#12-GCC,Assortativity,-0.0999441580857902
+2016#2-GCC,Assortativity,-0.0830492673590931
+2015#11-GCC,Assortativity,-0.0760164522709261
+2015#8-GCC,Assortativity,-0.1076656125018192
+2016#4-GCC,Assortativity,-0.0628503739141581
+2015#10-GCC,Assortativity,-0.0820261808032475
+2015#7-GCC,Assortativity,-0.0785831232928321
+2015#9-GCC,Assortativity,-0.0824394196574382
 2015#5-GCC,Assortativity,-0.0806727814837177
-2015#4-GCC,Assortativity,-0.10184657233660156
-2015#3-GCC,Assortativity,-0.08501308514023027
-2015#6-GCC,Assortativity,-0.07965378619414566
+2015#4-GCC,Assortativity,-0.1018465723366015
+2015#3-GCC,Assortativity,-0.0850130851402302
+2015#6-GCC,Assortativity,-0.0796537861941456
 2016#11-COMM,Total node count,1600.0
 2016#11-COMM,Total edge count,2105.0
-2016#11-COMM,Density,0.0016455597248280175
-2016#11-COMM,Assortativity,-0.15344830905827989
+2016#11-COMM,Density,0.001645559724828
+2016#11-COMM,Assortativity,-0.1534483090582798
 2017#5-COMM,Total node count,2007.0
 2017#5-COMM,Total edge count,3651.0
-2017#5-COMM,Density,0.0018136919585041587
-2017#5-COMM,Assortativity,-0.11639961383013216
+2017#5-COMM,Density,0.0018136919585041
+2017#5-COMM,Assortativity,-0.1163996138301321
 2017#12-COMM,Total node count,1528.0
 2017#12-COMM,Total edge count,1781.0
-2017#12-COMM,Density,0.0015266220251871204
+2017#12-COMM,Density,0.0015266220251871
 2017#12-COMM,Assortativity,-0.2483311005842038
 2017#3-COMM,Total node count,1345.0
 2017#3-COMM,Total edge count,1659.0
-2017#3-COMM,Density,0.0018355018587360595
+2017#3-COMM,Density,0.001835501858736
 2017#3-COMM,Assortativity,-0.3567217317029706
 2017#1-COMM,Total node count,1295.0
 2017#1-COMM,Total edge count,1938.0
-2017#1-COMM,Density,0.002313021787519469
-2017#1-COMM,Assortativity,-0.13372919374815131
+2017#1-COMM,Density,0.0023130217875194
+2017#1-COMM,Assortativity,-0.1337291937481513
 2017#11-COMM,Total node count,1334.0
 2017#11-COMM,Total edge count,1645.0
-2017#11-COMM,Density,0.001850162690597687
-2017#11-COMM,Assortativity,-0.16333147820930016
+2017#11-COMM,Density,0.0018501626905976
+2017#11-COMM,Assortativity,-0.1633314782093001
 2016#12-COMM,Total node count,1003.0
 2016#12-COMM,Total edge count,1273.0
-2016#12-COMM,Density,0.002533318209045518
-2016#12-COMM,Assortativity,-0.16959827658339216
+2016#12-COMM,Density,0.0025333182090455
+2016#12-COMM,Assortativity,-0.1695982765833921
 2017#10-COMM,Total node count,1218.0
 2017#10-COMM,Total edge count,1592.0
-2017#10-COMM,Density,0.0021480045280798973
-2017#10-COMM,Assortativity,-0.19146868031596836
+2017#10-COMM,Density,0.0021480045280798
+2017#10-COMM,Assortativity,-0.1914686803159683
 2018#3-COMM,Total node count,1315.0
 2018#3-COMM,Total edge count,1503.0
-2018#3-COMM,Density,0.001739673941351112
-2018#3-COMM,Assortativity,-0.24386142632337457
+2018#3-COMM,Density,0.0017396739413511
+2018#3-COMM,Assortativity,-0.2438614263233745
 2017#7-COMM,Total node count,1093.0
 2017#7-COMM,Total edge count,1553.0
-2017#7-COMM,Density,0.002602307725820992
-2017#7-COMM,Assortativity,-0.17121347767783565
+2017#7-COMM,Density,0.0026023077258209
+2017#7-COMM,Assortativity,-0.1712134776778356
 2017#6-COMM,Total node count,1463.0
 2017#6-COMM,Total edge count,2095.0
 2017#6-COMM,Density,0.0019589453673981
-2017#6-COMM,Assortativity,-0.15227654527952075
+2017#6-COMM,Assortativity,-0.1522765452795207
 2018#2-COMM,Total node count,1071.0
 2018#2-COMM,Total edge count,1197.0
-2018#2-COMM,Density,0.0020890599230346343
+2018#2-COMM,Density,0.0020890599230346
 2018#2-COMM,Assortativity,-0.3183440278924149
 2017#4-COMM,Total node count,1416.0
 2017#4-COMM,Total edge count,1954.0
-2017#4-COMM,Density,0.0019504501806711784
+2017#4-COMM,Density,0.0019504501806711
 2017#4-COMM,Assortativity,-0.1666601365911388
 2017#9-COMM,Total node count,1101.0
 2017#9-COMM,Total edge count,1389.0
-2017#9-COMM,Density,0.002293782511766163
-2017#9-COMM,Assortativity,-0.19007016840179625
+2017#9-COMM,Density,0.0022937825117661
+2017#9-COMM,Assortativity,-0.1900701684017962
 2018#1-COMM,Total node count,791.0
 2018#1-COMM,Total edge count,1058.0
-2018#1-COMM,Density,0.0033861959704908065
-2018#1-COMM,Assortativity,-0.15460525032062178
+2018#1-COMM,Density,0.0033861959704908
+2018#1-COMM,Assortativity,-0.1546052503206217
 2017#8-COMM,Total node count,764.0
 2017#8-COMM,Total edge count,910.0
-2017#8-COMM,Density,0.0031221480378500407
-2017#8-COMM,Assortativity,-0.22809337855990824
+2017#8-COMM,Density,0.00312214803785
+2017#8-COMM,Assortativity,-0.2280933785599082
 2017#2-COMM,Total node count,919.0
 2017#2-COMM,Total edge count,1268.0
-2017#2-COMM,Density,0.003006014399472762
+2017#2-COMM,Density,0.0030060143994727
 2017#2-COMM,Assortativity,-0.1959854453724431
 2018#9-COMM,Total node count,1678.0
 2018#9-COMM,Total edge count,1838.0
-2018#9-COMM,Density,0.001306322729944428
+2018#9-COMM,Density,0.0013063227299444
 2018#9-COMM,Assortativity,-0.4977505211663207
 2016#10-COMM,Total node count,835.0
 2016#10-COMM,Total edge count,1096.0
-2016#10-COMM,Density,0.0031476615115093552
-2016#10-COMM,Assortativity,-0.23120172623760382
+2016#10-COMM,Density,0.0031476615115093
+2016#10-COMM,Assortativity,-0.2312017262376038
 2018#7-COMM,Total node count,1058.0
 2018#7-COMM,Total edge count,1364.0
-2018#7-COMM,Density,0.00243940388408897
-2018#7-COMM,Assortativity,-0.15669697399545404
+2018#7-COMM,Density,0.0024394038840889
+2018#7-COMM,Assortativity,-0.156696973995454
 2016#8-COMM,Total node count,1195.0
 2016#8-COMM,Total edge count,1471.0
-2016#8-COMM,Density,0.0020619134725230054
+2016#8-COMM,Density,0.002061913472523
 2016#8-COMM,Assortativity,-0.3650232559739164
 2018#4-COMM,Total node count,1374.0
 2018#4-COMM,Total edge count,1945.0
-2018#4-COMM,Density,0.0020620174269627067
-2018#4-COMM,Assortativity,-0.16252690833569702
+2018#4-COMM,Density,0.0020620174269627
+2018#4-COMM,Assortativity,-0.162526908335697
 2018#8-COMM,Total node count,773.0
 2018#8-COMM,Total edge count,1003.0
-2018#8-COMM,Density,0.0033615078859701455
-2018#8-COMM,Assortativity,-0.17459292539935187
+2018#8-COMM,Density,0.0033615078859701
+2018#8-COMM,Assortativity,-0.1745929253993518
 2016#1-COMM,Total node count,799.0
 2016#1-COMM,Total edge count,802.0
-2016#1-COMM,Density,0.002515675923224833
+2016#1-COMM,Density,0.0025156759232248
 2016#1-COMM,Assortativity,-0.9004104654181178
 2016#3-COMM,Total node count,735.0
 2016#3-COMM,Total edge count,1040.0
-2016#3-COMM,Density,0.0038554931509388497
-2016#3-COMM,Assortativity,-0.15037483884374084
+2016#3-COMM,Density,0.0038554931509388
+2016#3-COMM,Assortativity,-0.1503748388437408
 2016#5-COMM,Total node count,831.0
 2016#5-COMM,Total edge count,830.0
-2016#5-COMM,Density,0.0024067388688327317
-2016#5-COMM,Assortativity,-0.9809982021573783
+2016#5-COMM,Density,0.0024067388688327
+2016#5-COMM,Assortativity,-0.9809982021573784
 2018#5-COMM,Total node count,772.0
 2018#5-COMM,Total edge count,974.0
-2018#5-COMM,Density,0.003272783478827712
+2018#5-COMM,Density,0.0032727834788277
 2018#5-COMM,Assortativity,-0.2354242996879739
 2016#7-COMM,Total node count,968.0
 2016#7-COMM,Total edge count,1245.0
-2016#7-COMM,Density,0.002660097259138342
-2016#7-COMM,Assortativity,-0.15580110131881994
+2016#7-COMM,Density,0.0026600972591383
+2016#7-COMM,Assortativity,-0.1558011013188199
 2016#9-COMM,Total node count,758.0
 2016#9-COMM,Total edge count,912.0
-2016#9-COMM,Density,0.0031787747078280814
-2016#9-COMM,Assortativity,-0.18259350797920731
+2016#9-COMM,Density,0.003178774707828
+2016#9-COMM,Assortativity,-0.1825935079792073
 2018#10-COMM,Total node count,963.0
 2018#10-COMM,Total edge count,1046.0
-2018#10-COMM,Density,0.0022581891740770244
-2018#10-COMM,Assortativity,-0.48209115877037056
+2018#10-COMM,Density,0.002258189174077
+2018#10-COMM,Assortativity,-0.4820911587703705
 2016#6-COMM,Total node count,778.0
 2016#6-COMM,Total edge count,1215.0
-2016#6-COMM,Density,0.004019811217754662
-2016#6-COMM,Assortativity,-0.13523182107504844
+2016#6-COMM,Density,0.0040198112177546
+2016#6-COMM,Assortativity,-0.1352318210750484
 2018#6-COMM,Total node count,612.0
 2018#6-COMM,Total edge count,730.0
-2018#6-COMM,Density,0.0039044532160927656
+2018#6-COMM,Density,0.0039044532160927
 2018#6-COMM,Assortativity,-0.2505381572637752
 2015#12-COMM,Total node count,680.0
 2015#12-COMM,Total edge count,776.0
-2015#12-COMM,Density,0.0033613445378151263
-2015#12-COMM,Assortativity,-0.32376089712178413
+2015#12-COMM,Density,0.0033613445378151
+2015#12-COMM,Assortativity,-0.3237608971217841
 2016#2-COMM,Total node count,816.0
 2016#2-COMM,Total edge count,1317.0
-2016#2-COMM,Density,0.003960664020209311
+2016#2-COMM,Density,0.0039606640202093
 2016#2-COMM,Assortativity,-0.1606530709824419
 2015#11-COMM,Total node count,1683.0
 2015#11-COMM,Total edge count,1682.0
-2015#11-COMM,Density,0.0011883541295306002
+2015#11-COMM,Density,0.0011883541295306
 2015#11-COMM,Assortativity,-0.9952606567243866
 2015#8-COMM,Total node count,775.0
 2015#8-COMM,Total edge count,953.0
-2015#8-COMM,Density,0.0031774610319246477
-2015#8-COMM,Assortativity,-0.25175254484250376
+2015#8-COMM,Density,0.0031774610319246
+2015#8-COMM,Assortativity,-0.2517525448425037
 2016#4-COMM,Total node count,784.0
 2016#4-COMM,Total edge count,783.0
-2016#4-COMM,Density,0.002551020408163265
+2016#4-COMM,Density,0.0025510204081632
 2016#4-COMM,Assortativity,-0.935870404647334
 2015#10-COMM,Total node count,658.0
 2015#10-COMM,Total edge count,657.0
-2015#10-COMM,Density,0.00303951367781155
+2015#10-COMM,Density,0.0030395136778115
 2015#10-COMM,Assortativity,-0.9789967894822236
 2015#7-COMM,Total node count,672.0
 2015#7-COMM,Total edge count,674.0
-2015#7-COMM,Density,0.0029894968419558582
+2015#7-COMM,Density,0.0029894968419558
 2015#7-COMM,Assortativity,-0.911618291958007
 2015#9-COMM,Total node count,664.0
 2015#9-COMM,Total edge count,664.0
-2015#9-COMM,Density,0.0030165912518853697
-2015#9-COMM,Assortativity,-0.9733769108456347
+2015#9-COMM,Density,0.0030165912518853
+2015#9-COMM,Assortativity,-0.9733769108456348
 2015#5-COMM,Total node count,807.0
 2015#5-COMM,Total edge count,1026.0
-2015#5-COMM,Density,0.0031547778280000367
-2015#5-COMM,Assortativity,-0.21646964087940596
+2015#5-COMM,Density,0.003154777828
+2015#5-COMM,Assortativity,-0.2164696408794059
 2015#4-COMM,Total node count,465.0
 2015#4-COMM,Total edge count,464.0
-2015#4-COMM,Density,0.004301075268817204
+2015#4-COMM,Density,0.0043010752688172
 2015#4-COMM,Assortativity,-0.9419859091442212
 2015#3-COMM,Total node count,586.0
 2015#3-COMM,Total edge count,586.0
-2015#3-COMM,Density,0.003418803418803419
-2015#3-COMM,Assortativity,-0.9313732040011911
+2015#3-COMM,Density,0.0034188034188034
+2015#3-COMM,Assortativity,-0.9313732040011912
 2015#6-COMM,Total node count,656.0
 2015#6-COMM,Total edge count,655.0
-2015#6-COMM,Density,0.003048780487804878
-2015#6-COMM,Assortativity,-0.9879063905951295
+2015#6-COMM,Density,0.0030487804878048
+2015#6-COMM,Assortativity,-0.9879063905951296
+2017#1-GCC,Diameter,19.0
+2017#1-GCC,Average shortest path,5.697536880646172
+2018#1-GCC,Diameter,20.0
+2018#1-GCC,Average shortest path,6.018337693568283
+2016#1-GCC,Diameter,16.0
+2016#1-GCC,Average shortest path,5.527463439851887
+2017#7-GCC,Diameter,17.0
+2017#7-GCC,Average shortest path,5.73963448541627
+2018#7-GCC,Diameter,17.0
+2018#7-GCC,Average shortest path,6.030093357893339
+2016#7-GCC,Diameter,18.0
+2016#7-GCC,Average shortest path,5.8669662406039205
+2015#7-GCC,Diameter,16.0
+2015#7-GCC,Average shortest path,5.84062872930163
+2017#10-GCC,Diameter,21.0
+2017#10-GCC,Average shortest path,6.271921075553941
+2017#4-GCC,Diameter,19.0
+2017#4-GCC,Average shortest path,5.772660751374215
+2016#10-GCC,Diameter,17.0
+2016#10-GCC,Average shortest path,5.865235065062151
+2018#4-GCC,Diameter,17.0
+2018#4-GCC,Average shortest path,5.814560933945597
+2018#10-GCC,Diameter,16.0
+2018#10-GCC,Average shortest path,5.621229668943598
+2016#4-GCC,Diameter,17.0
+2016#4-GCC,Average shortest path,6.002729889573755
+2015#10-GCC,Diameter,16.0
+2015#10-GCC,Average shortest path,5.734927978187491
+2015#4-GCC,Diameter,17.0
+2015#4-GCC,Average shortest path,5.827157436250978
+2016#11-GCC,Diameter,17.0
+2016#11-GCC,Average shortest path,6.030078675214482
+2017#5-GCC,Diameter,16.0
+2017#5-GCC,Average shortest path,5.601793774957361
+2017#12-GCC,Diameter,20.0
+2017#12-GCC,Average shortest path,5.831999996323964
+2017#3-GCC,Diameter,17.0
+2017#3-GCC,Average shortest path,5.808544895778187
+2017#11-GCC,Diameter,18.0
+2017#11-GCC,Average shortest path,5.999486358719403
+2016#12-GCC,Diameter,21.0
+2016#12-GCC,Average shortest path,5.989464221823574

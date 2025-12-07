@@ -450,7 +450,7 @@ class RedditNetworkAnalyzer:
 
         # Try to reuse cached preprocessed data
         if self.use_checkpoints:
-            print("Attempting to reuse chackpoint...")
+            print("Attempting to reuse checkpoint...")
             checkpoint_data = self.load_checkpoint(self.checkpoint_preprocessing_step)
             if checkpoint_data is not None:
                 df_posts, df_comments = checkpoint_data
@@ -1036,6 +1036,16 @@ class RedditNetworkAnalyzer:
             _record_stat(f"{period}-GCC", "Diameter", metrics.get_diameter(gcc))
             _record_stat(f"{period}-GCC", "Average shortest path", metrics.get_average_shortest_path(gcc))
             _record_stat(f"{period}-GCC", "Assortativity", metrics.get_assortativity(gcc))
+
+            print("        Calculating stats based on largest community")
+
+            comm_graph = metrics.get_largest_community(network, partition)
+
+            _record_distribution_stat(f"{period}-COMM", comm_graph)
+            _record_stat(f"{period}-COMM", "Total node count", metrics.get_node_count(comm_graph))
+            _record_stat(f"{period}-COMM", "Total edge count", metrics.get_edge_count(comm_graph))
+            _record_stat(f"{period}-COMM", "Density", metrics.get_density(comm_graph))
+            _record_stat(f"{period}-COMM", "Assortativity", metrics.get_assortativity(comm_graph))
 
         print("Calculating relevant metrics...")
 
