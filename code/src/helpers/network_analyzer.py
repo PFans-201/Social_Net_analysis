@@ -881,6 +881,136 @@ class RedditNetworkAnalyzer:
 
         return results
 
+    def analyze_evolution_dynamics(self):
+        """
+        [Deep Dive] Analyzes the stability of specific users and hubs over time.
+        Robust version: handles both wrapped and unwrapped community data structures.
+        """
+        if not self.detected_communities or len(self.detected_communities) < 2:
+            print("Need at least 2 periods with detected communities.")
+            return
+
+        print("\n" + "="*70)
+        print("EVOLUTION DYNAMICS: HUBS & USER LOYALTY")
+        print("="*70)
+
+        # Ensure we only analyze periods present in both datasets
+        available_periods = set(self.detected_communities.keys()) & set(self.snapshots.keys())
+        sorted_periods = sorted(list(available_periods))
+        
+        if len(sorted_periods) < 2:
+            print(f" Not enough common periods. Found: {sorted_periods}")
+            return
+
+        # --- PART A: HUB PERSISTENCE (Who stays on top?) ---
+        print("\nHUB PERSISTENCE ANALYSIS")
+        
+        period_hubs = {}
+        for period in sorted_periods:
+            G = self.snapshots[period]
+            degrees = dict(G.degree())
+            if not degrees: continue
+            
+            # Threshold for top 1%
+            threshold = np.percentile(list(degrees.values()), 99)
+            hubs = {u for u, d in degrees.items() if d >= threshold}
+            period_hubs[period] = hubs
+            print(f"   • {period}: {len(hubs)} hubs (Degree >= {int(threshold)})")
+
+        for i in range(len(sorted_periods) - 1):
+            p1, p2 = sorted_periods[i], sorted_periods[i+1]
+            if p1 not in period_hubs or p2 not in period_hubs: continue
+
+            hubs1 = period_hubs[p1]
+            hubs2 = period_hubs[p2]
+            
+            retained = hubs1.intersection(hubs2)
+            retention_rate = len(retained) / len(hubs1) if hubs1 else 0
+            
+            print(f"   {p1} -> {p2}: {len(retained)} hubs survived ({retention_rate:.1%})")
+
+        # Evergreen Hubs
+        if period_hubs:
+            evergreen_hubs = set.intersection(*period_hubs.values())
+            print(f"\n   EVERGREEN HUBS (Present in all {len(period_hubs)} periods): {len(evergreen_hubs)}")
+            if evergreen_hubs:
+                print(f"      Sample: {list(evergreen_hubs)[:5]}")
+
+        # --- PART B: USER COMMUNITY FIDELITY (Do they switch sides?) ---
+        print("\nUSER COMMUNITY FIDELITY")
+        
+        user_fidelity_scores = []
+        switch_counts = defaultdict(int)
+        
+        for i in range(len(sorted_periods) - 1):
+            p1, p2 = sorted_periods[i], sorted_periods[i+1]
+            
+            # --- CORRECTION: Robust Data Extraction ---
+            # Handles if data is stored as {user: [comm]} OR {'communities': {user: [comm]}}
+            data1 = self.detected_communities[p1]
+            comm_data1 = data1.get('communities', data1) if isinstance(data1, dict) and 'communities' in data1 else data1
+            
+            data2 = self.detected_communities[p2]
+            comm_data2 = data2.get('communities', data2) if isinstance(data2, dict) and 'communities' in data2 else data2
+            # ------------------------------------------
+
+            # Invert to get {comm_id: set(members)}
+            def get_groups(c_data):
+                g = defaultdict(set)
+                for u, c_ids in c_data.items():
+                    if c_ids: 
+                        g[c_ids[0]].add(u)
+                return g
+            
+            groups1 = get_groups(comm_data1)
+            groups2 = get_groups(comm_data2)
+            
+            common_users = set(comm_data1.keys()) & set(comm_data2.keys())
+            
+            if not common_users: 
+                print(f" No common users between {p1} and {p2}")
+                continue
+            
+            period_switch_count = 0
+            
+            for user in common_users:
+                # Get community IDs
+                c1 = comm_data1[user][0]
+                c2 = comm_data2[user][0]
+                
+                members_t1 = groups1.get(c1, set())
+                members_t2 = groups2.get(c2, set())
+                
+                # Jaccard Similarity on Neighbors
+                intersection = len(members_t1 & members_t2)
+                union = len(members_t1 | members_t2)
+                
+                # If union is 0 (isolated user), stability is technically undefined/0
+                stability = intersection / union if union > 0 else 0
+                
+                user_fidelity_scores.append(stability)
+                
+                # Define a "Switch" as < 10% neighbour overlap
+                if stability < 0.1: 
+                    period_switch_count += 1
+                    switch_counts[user] += 1
+            
+            print(f"   {p1} -> {p2}: {len(common_users)} common users")
+            if common_users:
+                # Avg stability for THIS transition
+                current_scores = user_fidelity_scores[-len(common_users):]
+                print(f"    Avg Stability: {np.mean(current_scores):.3f}")
+                print(f"    Switched Communities: {period_switch_count} ({period_switch_count/len(common_users):.1%})")
+
+        # Global Stats
+        if user_fidelity_scores:
+            avg_fidelity = np.mean(user_fidelity_scores)
+            print(f"\n   OVERALL USER METRICS:")
+            print(f"      Global Average Fidelity: {avg_fidelity:.3f} (1.0 = Loyal)")
+            
+            frequent_switchers = {u: c for u, c in switch_counts.items() if c >= (len(sorted_periods) - 2)}
+            print(f"      Frequent Switchers (>80% of times): {len(frequent_switchers)}")
+            
     def run_network_analysis(
             self,
             synthetic: bool = False,
