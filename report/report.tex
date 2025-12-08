@@ -1,5 +1,7 @@
 %%
 \documentclass[format=acmlarge]{acmart}
+\usepackage{graphicx}
+\usepackage{subcaption}
 
 %% \BibTeX command to typeset BibTeX logo in the docs
 \AtBeginDocument{%
@@ -46,12 +48,7 @@
 
 %%
 \begin{abstract}
-  A clear and well-documented \LaTeX\ document is presented as an
-  article formatted for publication by ACM in a conference proceedings
-  or journal publication. Based on the ``acmart'' document class, this
-  article presents and explains many of the common variations, as well
-  as many of the formatting elements an author may use in the
-  preparation of the documentation of their work.
+  This study investigates the structural evolution of a large online community by analyzing the monthly interaction networks derived from the posts and replies of a Subreddit. Users are represented as nodes and reply relationships as weighted undirected edges, enabling the construction of a time-resolved sequence of social graphs. Using these networks, we compute a range of theoretic measures, including degree distributions, betweenness centrality, clustering coefficients, component structure, and connectivity metrics, to characterize both local and global aspects of the network structure. By examining how these metrics vary across time, we identify persistent structural patterns, shifts in user engagement, and changes in the community's cohesion. The results reveal a highly heterogeneous interaction landscape dominated by sparse, low-clustering regions, with a small but stable core of structurally important users who sustain connectivity across otherwise fragmented subgroups.
 \end{abstract}
 
 %%
@@ -87,36 +84,22 @@ from the domain of Network Science and Graph Theory. The analysis of such
 networks is essential to understand how communities grow, stabilize,
 fracture, or reorganize themselves.
 
-In this work, we performed a longitudinal exam of the temporal
+In this work, we performed a longitudinal analysis of the temporal
 dynamics of a specific Subreddit (\verb|r/Documentaries|), between the years
-2015 and 2018. To that end, we constructed periodical monthly snapshots
-of this Subreddit's user interaction network. Each snapshot is a distinct
-network, where users are represented as nodes and reply relationships
-as weighted, undirected edges, capturing both the existence and intensity
-of interactions.
+2015 and 2018. To that end, we constructed periodic monthly snapshots
+of this Subreddit's user interactions in the form of two networks (one directed, one undirected). In these networks, users are represented as nodes and reply events are represented as weighted edges. Edge weights record the number of replies from user \verb|u| to user \verb|v| within the snapshot period. While individual comment reply trees are locally acyclic, the month-aggregated directed user-user network may contain reciprocal edges and cycles arising from back-and-forth exchanges.
 
 By computing a suite of structural metrics, such as degree distribution,
 clustering coefficients, centrality measures, communities, and component
 structure, and plotting their trajectories across time, we aim to characterize
 the evolution of user behavioral patterns, identify persistent structural
-features and assess the overall stability of this Subreddit's underlying
+features, and assess the overall stability of this Subreddit's underlying
 social fabric.
 
-The goal is to describe the temporal behaviour of this Subreddit, but also
-to explore whether this online community exhibits some type of stable
+In addition to the description of the temporal behavior of this Subreddit, we also aim to explore whether this online community exhibits some type of stable
 signature in their network properties or whether, on the other hand, it
-evolves unpredictably. To that end, we also created a theorical network
+evolves unpredictably. To that end, we also created a theoretical network
 model and measured how it approximated the observed community.
-
-\section{Related Work}
-
-Code snippet example:
-\begin{verbatim}
-  \documentclass[STYLE]{acmart}
-\end{verbatim}
-
-Text can be in {\itshape italic style}, {\bfseries bold style},
-\underline{underlined} or {\verb|code|}.
 
 \section{Data}
 
@@ -124,300 +107,355 @@ Text can be in {\itshape italic style}, {\bfseries bold style},
 
 The base data for this case study was downloaded as a zip file from ConvoKit, the Cornell
 Conversation Analysis Toolkit, at /url{https://zissou.infosci.cornell.edu/convokit/datasets/subreddit-corpus/corpus-zipped/}.
-According to their documentation:
-
-\say{This toolkit contains tools to extract conversational features and analyze social
+According to their documentation: ``This toolkit contains tools to extract conversational features and analyze social
 phenomena in conversations, using a single unified interface inspired by (and compatible with)
 scikit-learn. Several large conversational datasets are included together with scripts
-exemplifying the use of the toolkit on these datasets.}
+exemplifying the use of the toolkit on these datasets.''
 
-This website includes extracts from multiple Subreddits. Our criteria to select the
-r/Documentaries Subreddit as the object of our study was:
+This website includes extracts from multiple Subreddits. Our criteria for selecting the
+\verb|r/Documentaries| Subreddit as the object of our study were as follows:
 \begin{enumerate}
-  \item {\bfseries Size of the dataset:} at 340 MB, this seemed like a manageable dataset that
+  \item {\bfseries Size of the data set:} At 340 MB, this seemed like a manageable data set that
   could produce networks with a sufficient number of nodes to derive meaningful results
-  from without compromising performance or operational agility. Our aim was to work with
+  without compromising performance or operational agility. Our aim was to work with
   networks that contained at least 10 000 nodes.
-  \item {\bfseries Reference in previous work:} The r/Documentaries Subreddit was mentioned in
-  the 2018 article {\itshape Community Interaction and Conflict on the Web}, by S. Kumar, W. L.
-  Hamilton, J. Leskovec, and D. Jurafsky\cite{Kumar2018}. In their study, the authors identified
-  a group of users from another Subreddit, who mobilized together and initiated a targetted
-  attack against r/Documentaries, by posting malicious responses to posts in that Subreddit.
-  Given our intention to analyse the stability and cohesion of an online community over time,
-  the existence of such conflicts that necessarily interfere with regular user activity was
-  of particular interest to us.
+  \item {\bfseries Reference in previous work:} The \verb|r/Documentaries| Subreddit was mentioned in
+  the 2018 article ``Community Interaction and Conflict on the Web'', by S. Kumar, W. L.
+  Hamilton, J. Leskovec, and D. Jurafsky \cite{Kumar2018}. In their study, the authors identified
+  a group of users from another Subreddit, who mobilized together to initiate a targeted
+ attack against \verb|r/Documentaries|, by posting malicious responses to posts in that Subreddit.
+  Given our intention to analyze the stability and cohesion of an online community over time,
+  the existence of such conflicts that necessarily interfere with regular user activity patterns was of particular interest to us.
 \end{enumerate}
 
 \subsection{Tabular Data Preparation}
 
-The base dataset, in tabular format, included data from the time of the Subreddit's creation up
+The base data set, in tabular format, included data from the time of the Subreddit's creation up
 to October 2018. Some notes on the structure of the data and nomenclature:
 \begin{itemize}
   \item {\bfseries Users} are identified by their Reddit username.
   \item An individual post or a comment is an {\bfseries utterance}.
   \item A post and its respective response comments is a {\bfseries conversation}.
-  \item Users whose profile was deleted have their username replaced with the string {\verb|[deleted]|}.
-  \item Deleted utterances have their content replaced with the string {\verb|[removed]|}.
+  \item Users whose profile was deleted had their username replaced with the string {\verb|[deleted]|}.
+  \item Deleted utterances had their content replaced with the string {\verb|[removed]|}.
 \end{itemize}
 
-Our data preprocessing pipeline started with the loading of the conversation and utterance datasets,
-which we called {\bfseries posts} and {\bfseries comments}, respectively. We then performed a series
-of preprocessing operations, namely:
+Our data preprocessing pipeline started with the loading of the conversation and utterance data sets,
+which we called {\bfseries posts} and {\bfseries comments}, respectively. We then performed a series of preprocessing operations, namely:
 \begin{itemize}
-  \item Parsing conversation timestamps: The timestamp of the start of a conversation
+  \item {\bfseries Parsing conversation timestamps:} The timestamp of the start of a conversation
   was converted from a unix-timestamp to a datetime object.
-  \item Parsing utterance timestamps: The timestamp in which an utterance was produced
+  \item {\bfseries Parsing utterance timestamps:} The timestamp in which an utterance was produced
   was converted from a unix-timestamp to a datetime object. When the original timestamp
-  could not be parsed, the records were dropped from the dataset. In the remaining records,
-  we created four derived features based on the timestamp: the week of year number, the month
-  of year number, the year, and the string concatenating year and month in YYYY-MM format.
-  These new features enabled us to identify which utterances belongeded to each network snapshot
-  in later preprocessing steps.
-  \item Excluding invalid utterances based on user details: To prevent skewing the results,
+  could not be parsed, the records were dropped from the data set. In the remaining records,
+  we created four derived features based on the timestamp: the week-of-year, the month-of-year, the year, and the string concatenation of year and month in ``YYYY-MM'' format.
+  These new features enabled us to identify which utterances belonged to each network snapshot
+  in later steps of the analysis.
+  \item {\bfseries Excluding invalid utterances based on user details:} To prevent skewing the results,
   we excluded all utterances where the user was identified as {\verb|[deleted]|} or was left undefined.
-  If these utterances had been left in the dataset, they would have produced user nodes in the networks
+  If these utterances had been left in the data set, they would have produced user nodes in the networks
   with a substantially higher degree than the others, as they would have aggregated the activity from
   an unknown number of users. For the same reason, we also excluded all utterances where the reply-to
   user was undefined (note: the first utterance in a conversation is considered to be a self-reply,
   so this field should not be empty under normal circumstances).
-  \item Excluding invalid utterances based on text: Our goal was to derive new attributes from the
+  \item {\bfseries Excluding invalid utterances based on text:} Our goal was to derive new attributes from the
   utterance text that could be used to characterize the network and communities found therein.
   As such, we excluded all utterances in which the text was unavailable.
-  \item Calculating sentiment analysis score for each utterance: We used the VADER SentimentIntensityAnalyzer
+  \item {\bfseries Calculating the sentiment analysis score for each utterance:} We used the VADER SentimentIntensityAnalyzer
   model to calculate the sentiment score for each utterance. This was an example of an attribute
   that could be extracted from the text of the utterances that could be used to characterize
   communities of users. Other attributes considered were a controlled subset of topics, but due
   to time constraints, these were not implemented.
 \end{itemize}
 
+During the analysis of the data, we detected that there were a number of bots among the Subreddit users. We consider that the presence of these bots could potentially skew the results of the study, however, due to time constraints and the difficulty in correctly identifying which utterances were produced by a bot, these data points were left in the data set.
+
 \subsection{Network Preparation}
 
 With the base data preprocessed and formatted, the next step in our process was to create user-user
-networks based on the tabular utterance data. Our algorithm worked by taking as inputs the number of
+networks based on the tabular utterance data. Our algorithm worked by taking as input the number of
 snapshots per year to be created and the temporal granularity of the data (weekly or monthly). For
-the purpose of the results presented in this report, we generated four monthly snapshot networks,
-according to the following process:
+the purpose of the results presented in this report, we generated four monthly snapshot networks according to the following process:
 
 \begin{enumerate}
-  \item {\bfseries Size of the dataset:}
-  \item {\bfseries Reference in previous work:}
+  \item {\bfseries Selection of snapshot periods:} Given the granularity and yearly number of snapshots to create, we determined a set of candidate dates for the creation of a network. For each candidate date, we then estimated the number of nodes comprising the giant connected component (GCC) of the resulting network, in order to exclude networks that did not meet our criterion for a minimum of 10 000 nodes. The remaining dates were selected for network creation.
+  \item {\bfseries Selection of utterances within each snapshot period:} For each date, we selected the utterances that were produced within that period. For example, a snapshot for the date of January 2018 (with monthly granularity) should include all utterances made from January 1 until January 31 of that year.
+  \item {\bfseries Identification of replied-to users and edges:} The utterances data set identifies the previous comment in a conversation by its utterance ID. In order for us to identify the user who produced that utterance, we created a map between utterance ID and users. By applying this map to the utterances data set, we were able to identify which users/nodes should be connected by an edge in our network and which weight that edge should have. The edge weight was calculated as the count of utterances between those two users within the snapshot period. We once again excluded data points where the replied-to users had deleted their profile or were not defined. We also excluded self-replies: the first utterance in a conversation, i.e. a Reddit post, is always considered a self-reply since it is not a direct reply to any previous utterance.
+  \item {\bfseries Creation of undirected and directed weighted graphs:} For each snapshot, we constructed an undirected and a directed graph. Edges in the undirected graph connect users who replied to each other, without specifying who replied to whom. In the directed graph, each directed edge $u \to v$ indicates that user $u$ replied to user $v$ within the snapshot window. In both directed and undirected graphs, the edge weight equals the count of replies in that window. We explicitly avoid labeling the aggregated directed networks as DAGs, because reciprocal replies and cross-thread activity can produce directed cycles at the user level.
 \end{enumerate}
 
-\section{Methods}
+This process produced a total of 30 networks (15 directed and 15 undirected), from April 2015 to October 2018. The months considered over this period were January, April, July and October. These networks are further characterized in the ``Results and Discussion'' section.
+
+\section{Methodology}
+
+After the creation of the network snapshots, we proceeded to analyze them according to a number of metrics. We started by applying a community detection algorithm to each snapshot that returned a correspondence between node and the community it belonged to. Based on the network snapshots and the results of that community detection algorithm, we then calculated some network metrics for each temporal snapshot over the following entities:
+\begin{itemize}
+  \item Full network;
+  \item Subgraph of the snapshot's GCC;
+  \item Subgraph of the snapshot's largest identified community.
+\end{itemize}
 
 \subsection{Community Detection}
+
+We decided to first use the Louvain algorithm due to its good performance and the fact that it identifies non-overlapping communities. This was an important attribute to have in our first analysis, as working with a 1-N relationship between node and community ID would make the process to compute certain metrics on a community basis more complex.
+
+\paragraph{Directed vs. undirected processing.}
+Many community detection algorithms, like Louvain or BigCLAM, expect undirected graphs as input. In those cases, we use the snapshot's undirected view (NetworkX's \texttt{to\_undirected()}), preserving edge weights by summing reciprocated weights where necessary. Metrics that rely on directionality (in-degree, reciprocity, directed motifs) are computed on the original directed, weighted snapshots.
+
+The Louvain algorithm was applied independently to each network snapshot. Therefore, we take note that there is no guarantee that the community ID generated by the algorithm refer to the same entity in all the snapshots.
+
 \subsection{Metrics}
-\subsection{Theoretical Network Generation Models}
+
+Given the number and size of the networks produced, we tried to separate the metrics calculation step from the interpretation step as much as possible. This allowed us to better automate the computation process and improve the performance of our code. We pre-calculated the following metrics:
+\begin{itemize}
+  \item Total utterances count per snapshot;
+  \item Unique user count per snapshot;
+  \item Unique posts with replies per snapshot;
+  \item Total utterances without text per snapshot;
+  \item Total utterances that are replies per snapshot;
+  \item Valid user-to-user replies per snapshot;
+  \item Unique user-to-user reply pairs per snapshot;
+  \item Average user reply counts per snapshot;
+  \item Maximum user reply counts per snapshot;
+  \item Median conversations per user per snapshot;
+  \item Median users per conversation per snapshot;
+  \item Ratio of users commenting on multiple conversations per snapshot;
+  \item Ratio of conversations with multiple users per snapshot;
+  \item Total node count per snapshot, per snapshot GCC and per snapshot's largest identified community;
+  \item Total edge count per snapshot, per snapshot GCC and per snapshot's largest identified community;
+  \item Network density per snapshot, per snapshot GCC and per snapshot's largest identified community;
+  \item Network assortativity per snapshot, per snapshot GCC and per snapshot's largest identified community;
+  \item Count of communities identified per snapshot;
+  \item Community modularity metric per snapshot;
+  \item Average community internal vs external edge ratio per snapshot;
+  \item Network diameter per snapshot GCC;
+  \item Average shortest path per snapshot GCC.
+\end{itemize}
+
+In addition to these numerical metrics, we also collected data for the following distributions:
+\begin{itemize}
+  \item Network degree distribution per snapshot, per snapshot GCC and per snapshot's largest identified community;
+  \item Sizes of the connected components per snapshot, per snapshot GCC and per snapshot's largest identified community;
+  \item Network clustering coefficients per snapshot, per snapshot GCC and per snapshot's largest identified community;
+  \item Network betweenness centrality measures per snapshot, per snapshot GCC and per snapshot's largest identified community;
+  \item Total users per community per snapshot;
+  \item Median utterance sentiment score per community per snapshot;
+  \item Average utterance sentiment score per community per snapshot;
+  \item Standard deviation of the utterance sentiment score per community per snapshot.
+\end{itemize}
 
 \section{Results and Discussion}
 
-\subsection{Observed Subreddit Networks}
-\subsection{Comparison with Theoretical Model}
+\subsection{Observed Network}
 
-\section{Conclusions}
+An analysis of the temporal snapshots of the networks that represent user-user interactions in the (\verb|r/Documentaries|) Subreddit reveals some patterns of instability.
 
-\subsection{Subsection}
-\label{sec:subsection}
+Although the total number of users interacting in this Subreddit displays a generally rising trend up until late 2017, there are periods when the number of users appeared to abruptly decline. Throughout the year of 2018, the analysis of the network sizes also suggests that the user base's trend of growth started to reverse (Figure~\ref{fig:network_size}).
 
-This is a subsection.
-
-\subsubsection{Subsubsection}
-\label{sec:subsubsection}
-
-This is a subsubsection.
-
-\paragraph{Paragraph}
-
-This is a paragraph.
-
-\subparagraph{Subparagraph}
-
-This is a subparagraph.
-
-\section{Tables}
-
-Immediately following this sentence is the point at which
-Table~\ref{tab:freq} is included in the input file; compare the
-placement of the table here with the table in the printed output of
-this document.
-
-\begin{table}
-  \caption{Frequency of Special Characters}
-  \label{tab:freq}
-  \begin{tabular}{ccl}
-    \toprule
-    Non-English or Math&Frequency&Comments\\
-    \midrule
-    \O & 1 in 1,000& For Swedish names\\
-    $\pi$ & 1 in 5& Common in math\\
-    \$ & 4 in 5 & Used in business\\
-    $\Psi^2_1$ & 1 in 40,000& Unexplained usage\\
-  \bottomrule
-\end{tabular}
-\end{table}
-
-Immediately following this sentence is the point at which
-Table~\ref{tab:commands} is included in the input file.
-
-\begin{table*}
-  \caption{Some Typical Commands}
-  \label{tab:commands}
-  \begin{tabular}{ccl}
-    \toprule
-    Command &A Number & Comments\\
-    \midrule
-    \texttt{{\char'134}author} & 100& Author \\
-    \texttt{{\char'134}table}& 300 & For tables\\
-    \texttt{{\char'134}table*}& 400& For wider tables\\
-    \bottomrule
-  \end{tabular}
-\end{table*}
-
-\section{Figures}
-
-The ``\verb|figure|'' environment should be used for figures. One or
-more images can be placed within a figure. If your figure contains
-third-party material, you must clearly identify it as such, as shown
-in the example below.
 \begin{figure}[h]
-  \centering
-  \includegraphics[width=\linewidth]{sample-franklin}
-  \caption{1907 Franklin Model D roadster. Photograph by Harris \&
-    Ewing, Inc. [Public domain], via Wikimedia
-    Commons. (\url{https://goo.gl/VLCRBB}).}
-  \Description{A woman and a girl in white dresses sit in an open car.}
+   \centering
+   % First image
+   \begin{subfigure}{0.45\textwidth}
+       \centering
+       \includegraphics[width=\linewidth]{plots/node_counts_over_time.png}
+       \caption{Evolution of network size over time}
+       \label{fig:network_size}
+   \end{subfigure}
+   % Second image
+   \begin{subfigure}{0.45\textwidth}
+       \centering
+       \includegraphics[width=\linewidth]{plots/connected_component_sizes_2018-10.png}
+       \caption{Size of the network connected components in the October 2018 snapshot}
+       \label{fig:cc_sizes}
+   \end{subfigure}
+   \caption{Network and connected component sizes}
 \end{figure}
 
-Your figures should contain a caption which describes the figure to
-the reader.
+It should be noted that the networks' largest connected component is very close in size to the size of the full network on all snapshots (Figure~\ref{fig:cc_sizes}). The other connected components include only a minimal fraction of the nodes of the overall network. In association with the analysis of the degree distribution of the network (Figure~\ref{fig:degrees}), the small diameter and low value of the average shortest path of the network's giant connected component (Figure~\ref{fig:shortest_path_length}), this is supporting evidence that this network presents small-world properties.
 
-Figure captions are placed {\itshape below} the figure.
+\begin{figure}[h]
+   \centering
+   % First image
+   \begin{subfigure}{0.45\textwidth}
+       \centering
+       \includegraphics[width=\linewidth]{plots/degree_distribution_2018-10.png}
+       \caption{Network degree distribution (log-scaled) in the October 2018 snapshot}
+       \label{fig:degrees}
+   \end{subfigure}
+   % Second image
+   \begin{subfigure}{0.45\textwidth}
+       \centering
+       \includegraphics[width=\linewidth]{plots/shortest_path_length_over_time.png}
+       \caption{Average shortest path length and diameter in the networks' GCC}
+       \label{fig:shortest_path_length}
+   \end{subfigure}
+   \caption{Network degree distribution and average shortest path lengths}
+\end{figure}
 
-Every figure should also have a figure description unless it is purely
-decorative. These descriptions convey what’s in the image to someone
-who cannot see it. They are also used by search engine crawlers for
-indexing images, and when images cannot be loaded.
+A look at the distribution of the clustering coefficients of the network in the April 2015 and October 2018 snapshot (Figure~\ref{fig:clustering}) reveals other notable features:
+\begin{itemize}
+  \item There is a strong right skew, with the majority of nodes having clustering coefficients near zero. This indicates that, for most users, their neighbors are not connected to each other. The network may be considered sparse and dominated by weakly connected local structures.
+  \item A relatively small number of nodes achieve moderate or high clustering coefficients, suggesting that while most users participate sparsely, a minority are involved within more cohesive conversational clusters. These may be, for example, core regular Subreddit users who frequently interact with one another.
+  \item Many unique clustering-coefficient values appear only once, forming a band of frequency = 1, especially in the low-clustering region. This suggests there is no strong grouping within low-clustering nodes; instead, they form a broadly dispersed continuum.
+\end{itemize}
 
-A figure description must be unformatted plain text less than 2000
-characters long (including spaces).  {\bfseries Figure descriptions
-  should not repeat the figure caption – their purpose is to capture
-  important information that is not already provided in the caption or
-  the main text of the paper.} For figures that convey important and
-complex new information, a short text description may not be
-adequate. More complex alternative descriptions can be placed in an
-appendix and referenced in a short figure description. For example,
-provide a data table capturing the information in a bar chart, or a
-structured list representing a graph.  For additional information
-regarding how best to write figure descriptions and why doing this is
-so important, please see
-\url{https://www.acm.org/publications/taps/describing-figures/}.
+\begin{figure}[h]
+   \centering
+   % First image
+   \begin{subfigure}{0.45\textwidth}
+       \centering
+       \includegraphics[width=\linewidth]{plots/clustering_coefficient_distribution_2015-4.png}
+       \caption{Log-scaled distribution in the April 2015 snapshot}
+   \end{subfigure}
+   % Second image
+   \begin{subfigure}{0.45\textwidth}
+       \centering
+       \includegraphics[width=\linewidth]{plots/clustering_coefficient_distribution_2018-10.png}
+       \caption{Log-scaled distribution in the October 2018 snapshot}
+   \end{subfigure}
+   \caption{Network clustering coefficient distributions}
+   \label{fig:clustering}
+\end{figure}
 
-\section{Citations and Bibliographies}
+\begin{figure}[h]
+   \centering
+   % First image
+   \begin{subfigure}{0.45\textwidth}
+       \centering
+       \includegraphics[width=\linewidth]{plots/betweenness_distribution_2015-4.png}
+       \caption{Log-scaled distribution in the April 2015 snapshot}
+   \end{subfigure}
+   % Second image
+   \begin{subfigure}{0.45\textwidth}
+       \centering
+       \includegraphics[width=\linewidth]{plots/betweenness_distribution_2018-10.png}
+       \caption{Log-scaled distribution in the October 2018 snapshot}
+   \end{subfigure}
+   \caption{Network betweenness centrality distributions}
+   \label{fig:betweenness}
+\end{figure}
 
-The use of \BibTeX\ for the preparation and formatting of one's
-references is strongly recommended. Authors' names should be complete
---- use full first names (``Donald E. Knuth'') not initials
-(``D. E. Knuth'') --- and the salient identifying features of a
-reference should be included: title, year, volume, number, pages,
-article DOI, etc.
+We analyzed the distribution of the betweenness centrality measures of the network at the start and end of the temporal analysis (Figure~\ref{fig:betweenness}). The plots reveal common features at both points in time:
+\begin{itemize}
+  \item In line with the previous observation of network sparsity, most network nodes have near-zero betweenness. This indicates most users play no bridging role in the global flow of interaction, and their presence or absence does not strongly affect connectivity between different parts of the network.
+  \item There is a visible tail extending towards higher betweenness values. A few users act as central connectors, playing an important role in the network's cohesion and information flow, possibly because they participate widely across different threads or maintain persistent cross-user engagement.
+\end{itemize}
 
-The bibliography is included in your source document with these two
-commands, placed just before the \verb|\end{document}| command:
-\begin{verbatim}
-  \bibliographystyle{ACM-Reference-Format}
-  \bibliography{bibfile}
-\end{verbatim}
-where ``\verb|bibfile|'' is the name, without the ``\verb|.bib|''
-suffix, of the \BibTeX\ file.
+We applied the Population Stability Index (PSI), a metric frequently used to detect instances of data drift, to measure the stability of the node degree distributions and of the betweenness centrality distributions across snapshots (Figure~\ref{fig:psi}). Using the April 2015 snapshot as a baseline, we compared the distributions of the two features in the subsequent snapshots with the baseline to determine whether there were significant changes in the composition of the network. We found that, while the degree distributions are quite stable (PSI < 0.2 for all snapshots), the betweenness centrality PSI values oscillated between 0.24 and 0.34, indicating a greater level of instability.
 
-Citations and references are numbered by default. A small number of
-ACM publications have citations and references formatted in the
-``author year'' style; for these exceptions, please include this
-command in the {\bfseries preamble} (before the command
-``\verb|\begin{document}|'') of your \LaTeX\ source:
-\begin{verbatim}
-  \citestyle{acmauthoryear}
-\end{verbatim}
+\begin{figure}[h]
+   \centering
+   % First image
+   \begin{subfigure}{0.45\textwidth}
+       \centering
+       \includegraphics[width=\linewidth]{plots/psi_degree_distributions.png}
+       \caption{Stability across degree distributions over time}
+   \end{subfigure}
+   % Second image
+   \begin{subfigure}{0.45\textwidth}
+       \centering
+       \includegraphics[width=\linewidth]{plots/psi_betweenness_distributions.png}
+       \caption{Stability across betweenness centrality distributions over time}
+   \end{subfigure}
+   \caption{Population Stability Index (PSI) values for key network metrics}
+   \label{fig:psi}
+\end{figure}
 
+\subsection{Diagnosis: A ``Liquid'' Network Driven by Content}
 
-  Some examples.  A paginated journal article \cite{Abril07}, an
-  enumerated journal article \cite{Cohen07}, a reference to an entire
-  issue \cite{JCohen96}, a monograph (whole book) \cite{Kosiur01}, a
-  monograph/whole book in a series (see 2a in spec. document)
-  \cite{Harel79}, a divisible-book such as an anthology or compilation
-  \cite{Editor00} followed by the same example, however we only output
-  the series if the volume number is given \cite{Editor00a} (so
-  Editor00a's series should NOT be present since it has no vol. no.),
-  a chapter in a divisible book \cite{Spector90}, a chapter in a
-  divisible book in a series \cite{Douglass98}, a multi-volume work as
-  book \cite{Knuth97}, a couple of articles in a proceedings (of a
-  conference, symposium, workshop for example) (paginated proceedings
-  article) \cite{Andler79, Hagerup1993}, a proceedings article with
-  all possible elements \cite{Smith10}, an example of an enumerated
-  proceedings article \cite{VanGundy07}, an informally published work
-  \cite{Harel78}, a couple of preprints \cite{Bornmann2019,
-    AnzarootPBM14}, a doctoral dissertation \cite{Clarkson85}, a
-  master's thesis: \cite{anisi03}, an online document / world wide web
-  resource \cite{Thornburg01, Ablamowicz07, Poker06}, a video game
-  (Case 1) \cite{Obama08} and (Case 2) \cite{Novak03} and \cite{Lee05}
-  and (Case 3) a patent \cite{JoeScientist001}, work accepted for
-  publication \cite{rous08}, 'YYYYb'-test for prolific author
-  \cite{SaeediMEJ10} and \cite{SaeediJETC10}. Other cites might
-  contain 'duplicate' DOI and URLs (some SIAM articles)
-  \cite{Kirschmer:2010:AEI:1958016.1958018}. Boris / Barbara Beeton:
-  multi-volume works as books \cite{MR781536} and \cite{MR781537}. A
-  presentation~\cite{Reiser2014}. An article under
-  review~\cite{Baggett2025}. A
-  couple of citations with DOIs:
-  \cite{2004:ITE:1009386.1010128,Kirschmer:2010:AEI:1958016.1958018}. Online
-  citations: \cite{TUGInstmem, Thornburg01, CTANacmart}.
-  Artifacts: \cite{R} and \cite{UMassCitations}.
+The analysis of \texttt{r/Documentaries} reveals a network characterized by extreme instability at the micro-level. Unlike traditional social networks where connections are stabilized by persistent interpersonal bonds this Subreddit functions as a \textbf{``Liquid'' Network}.
 
-%%
-%% The acknowledgments section is defined using the "acks" environment
-%% (and NOT an unnumbered section). This ensures the proper
-%% identification of the section in the article metadata, and the
-%% consistent spelling of the heading.
-%% \begin{acks}
-%% To Robert, for the bagels and explaining CMYK and color spaces.
-%% \end{acks}
+The dynamics resemble a busy transport hub rather than a community center: the aggregate crowd volume remains constant, but the specific individuals interacting change almost entirely from one time step to the next.
+
+\subsection{Analysis of Hubs: ``15 Minutes of Fame''}
+The analysis identifies a phenomenon of ``15 Minutes of Fame'' regarding network influence.
+
+\begin{itemize}
+    \item \textbf{High Turnover:} The ``survival rate'' of hubs (central nodes) across time periods is exceptionally low, fluctuating between $5\%$ and $8\%$.
+    \item \textbf{Interpretation:} Being a ``Hub'' is a temporary state, not a permanent rank. High centrality likely correlates to a user posting a viral documentary or a top comment. Once the content fades from the ``Hot'' page, the user's hub status vanishes.
+    \item \textbf{The Infrastructure Constant:} The only ``Evergreen Hub'' present across all 15 analyzed periods is the \textbf{AutoModerator}.
+    \begin{itemize}
+        \item \textit{Significance:} This confirms the absence of a ``human oligarchy'' or stable group of influencers. The network structure is maintained by technical infrastructure (bots) and content flow, not by social leaders.
+    \end{itemize}
+\end{itemize}
+
+\subsection{Analysis of User Fidelity: The ``Nomad'' Effect}
+User behavior metrics indicate a lack of cohesive social groupings, pointing instead to interest-based, transient interactions.
+
+\begin{itemize}
+    \item \textbf{Zero Loyalty:} The \textbf{Global Average Fidelity is $0.004$}. If a user interacts with a specific group in Period $t$, the probability of them interacting with that same group in Period $t+3$ is effectively zero.
+    \item \textbf{100\% Switching Rate:} In nearly every period transition, $99.6\%$ to $100\%$ of users are flagged as ``switching communities.''
+    \item \textbf{Implication:} In this dataset, a ``Community'' is a proxy for a \textbf{Topic} or a \textbf{Thread}, not a social clique. Users do not migrate together. A user might engage with a ``History'' cluster in January and a ``Nature'' cluster in February, with no continuity in their peers.
+\end{itemize}
+
+\subsection{Conclusion: Equilibrium Dynamics \& Evolution}
+These results provide definitive answers regarding the equilibrium and evolutionary properties of the network.
+
+\subsubsection*{Does Macroscopic Stability emerge from Microscopic Instability?}
+\textbf{YES.} While the micro-level population is in a state of constant flux (extreme instability), the macroscopic structural properties remain robust.
+
+\begin{quote}
+    \textbf{Evidence:} The quantity of Hubs remains relatively stable (fluctuating between $\sim130$ and $\sim240$) even as the \textit{identity} of those hubs changes completely. The network maintains a consistent topological ``shape,'' despite being composed of a completely fluid population.
+\end{quote}
+
+\subsubsection*{How do communities evolve?}
+They do not ``evolve'' in the biological sense (splitting, merging, or growing over time). Instead, they \textbf{dissolve and reform}.
+
+This dynamic suggests that social bonding models are ill-suited for this network. Instead, an \textbf{Independent Cascade} model or a \textbf{Resource-Based} model (where ``attention'' is the finite resource) provides a more accurate fit.
+
+\subsubsection*{Theoretical Implication: The Fitness Model}
+The rapid appearance and disappearance of hubs impacts the choice of simulation models.
+
+\begin{itemize}
+    \item \textbf{Standard Barabási-Albert (BA):} This model is likely insufficient. In a standard BA network, the oldest nodes tend to become the largest (preferential attachment based on age/accumulation).
+    \item \textbf{Bianconi-Barabási (Fitness Model):} The data strongly suggests this extension of the BA model is required. In the Fitness Model, nodes have an intrinsic ``fitness'' (quality of content). A new node with high fitness (a viral post) can rapidly overtake older nodes. This aligns perfectly with the observation that new content constantly supersedes old content in the network rankings.
+\end{itemize}
+
+\subsection{Comparison with Theoretical Model}
+
+To validate our hypothesis that the network dynamics are driven by a "Price + Fitness + Activity" mechanism rather than a standard Barabási-Albert growth model, we implemented a generative simulation. The simulator couples a Markovian lifecycle model (governing user churn, birth, and resurrection, observed in Figure~\ref{fig:lifecycle}) with a modified preferential attachment mechanism that accounts for node fitness (virality) and explicit reciprocity.
+
+\begin{figure}[h]
+   \centering
+   \includegraphics[width=0.8\textwidth]{plots/reddit_lifecycle.png}
+   \caption{Markovian Lifecycle Model. Visualizing the transition probabilities between user states (Active, Dormant) and the exogenous influx of new users.}
+   \label{fig:lifecycle}
+\end{figure}
+
+We trained the model parameters on the first 80\% of the snapshots (2015--2017) and tested its predictive power on the remaining 20\% (2018). Figure~\ref{fig:validation_plots} illustrates the comparison between the empirical data (Real) and the simulation (Simulated) across six key metrics.
+
+\begin{figure}[h]
+   \centering
+   \includegraphics[width=\textwidth]{plots/validation_plots.png}
+   \caption{Model Validation (Train/Test Split). The vertical blue line marks the split between the training phase (parameter estimation) and the testing phase (forecasting). The model successfully captures the trends in edge volume and reciprocity, and approximates the power-law exponent ($\alpha$).}
+   \label{fig:validation_plots}
+\end{figure}
+
+The simulation results demonstrate a strong fit for macroscopic properties. As shown in Table~\ref{tab:validation_metrics}, the model achieves an overall accuracy score of approximately 81\% on the test set. The simulation closely tracks the Reciprocity ($R \approx 0.34$) and the Power-Law fit quality ($R^2 > 0.9$), confirming that the underlying "physics" of the Reddit network---high churn combined with fitness-based attachment---are well-represented by our theoretical framework.
+
+\begin{table}[h]
+  \caption{Validation Metrics for the Test Set (2018)}
+  \label{tab:validation_metrics}
+  \resizebox{\textwidth}{!}{%
+  \begin{tabular}{cccccccccccc}
+    \toprule
+    Time & Phase & Nodes (Real) & Nodes (Sim) & Edges (Real) & Edges (Sim) & Recip (Real) & Recip (Sim) & JS Div & $\alpha$ (Real) & $\alpha$ (Sim) & Score \\
+    \midrule
+    2018\#4 & Test & 17,256 & 19,762 & 29,298 & 39,653 & 0.333 & 0.338 & 0.212 & 2.585 & 2.443 & 0.804 \\
+    2018\#7 & Test & 17,710 & 20,331 & 30,667 & 39,882 & 0.346 & 0.354 & 0.173 & 2.583 & 2.306 & 0.834 \\
+    2018\#10 & Test & 15,880 & 19,653 & 28,254 & 39,625 & 0.348 & 0.338 & 0.197 & 2.612 & 2.523 & 0.792 \\
+    \bottomrule
+  \end{tabular}%
+  }
+\end{table}
+
+While the node and edge counts in the simulation are slightly higher than the observed values in the test period, the structural signatures (Reciprocity and Alpha) remain consistent. This discrepancy suggests that while the \textit{volume} of activity in the real subreddit began to decline in 2018 (as noted in Section 5.1), the \textit{structure} of interactions remains governed by the same generative rules identified in the training period.
 
 %%
 %% The next two lines define the bibliography style to be used, and
 %% the bibliography file.
 \bibliographystyle{ACM-Reference-Format}
 \bibliography{bibliography}
-
-
-%%
-%% If your work has an appendix, this is the place to put it.
-\appendix
-
-\section{Research Methods}
-
-\subsection{Part One}
-
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Morbi
-malesuada, quam in pulvinar varius, metus nunc fermentum urna, id
-sollicitudin purus odio sit amet enim. Aliquam ullamcorper eu ipsum
-vel mollis. Curabitur quis dictum nisl. Phasellus vel semper risus, et
-lacinia dolor. Integer ultricies commodo sem nec semper.
-
-\subsection{Part Two}
-
-Etiam commodo feugiat nisl pulvinar pellentesque. Etiam auctor sodales
-ligula, non varius nibh pulvinar semper. Suspendisse nec lectus non
-ipsum convallis congue hendrerit vitae sapien. Donec at laoreet
-eros. Vivamus non purus placerat, scelerisque diam eu, cursus
-ante. Etiam aliquam tortor auctor efficitur mattis.
-
-\section{Online Resources}
-
-Nam id fermentum dui. Suspendisse sagittis tortor a nulla mollis, in
-pulvinar ex pretium. Sed interdum orci quis metus euismod, et sagittis
-enim maximus. Vestibulum gravida massa ut felis suscipit
-congue. Quisque mattis elit a risus ultrices commodo venenatis eget
-dui. Etiam sagittis eleifend elementum.
 
 \end{document}
 \endinput
