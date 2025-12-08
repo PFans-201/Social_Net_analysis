@@ -1,0 +1,5 @@
+This user_network_month_year#month_num.pkl files are DAGs (Directed Acyclic graphs)
+
+To use in community detection algorithms like Louvain or BigCLAM, where it's 
+expect a undirected Acyclic graph (UAG) input, use networkx's function '_undirected()',
+to transform to the desired UAG input.

@@ -527,6 +527,7 @@ class RedditNetworkAnalyzer:
             temporal_unit: str = "month",
             min_gcc_size: int = 10_000,
             snapshots_per_year: int = 4,
+            directed: bool = True,  # Added parameter, default to True for DiGraphs
     ) -> dict:
         """
         Construct temporal snapshots of the user-user interaction network
@@ -546,6 +547,8 @@ class RedditNetworkAnalyzer:
                 creation (default: 10_000).
             snapshots_per_year (int, optional): Number of network snapshots to create
                 per year (default: 4).
+            directed (bool, optional): If True, create directed graphs (nx.DiGraph);
+                otherwise create undirected graphs (nx.Graph) (default: True).
 
         Returns:
             dict: A dictionary mapping periods to user-user networks.
@@ -553,19 +556,19 @@ class RedditNetworkAnalyzer:
 
         def _build_snapshot_network_worker(args):
             """
-            Worker that builds undirected user-user network for a single period.
+            Worker that builds user-user network for a single period.
 
             Args:
-                args (tuple): (period, period_df, global_comment_map, min_interactions)
+                args (tuple): (period, period_df, global_comment_map, min_interactions, directed)
 
             Returns:
                 tuple: (period, networks_dict)
             """
-            period, period_df, global_comment_map, min_interactions = args
+            period, period_df, global_comment_map, min_interactions, directed = args
 
             try:
                 if period_df is None or len(period_df) == 0:
-                    return period, nx.Graph()
+                    return period, nx.DiGraph() if directed else nx.Graph()
 
                 # Map comment ids to users (prefer global map if provided)
                 if global_comment_map is not None:
@@ -585,10 +588,10 @@ class RedditNetworkAnalyzer:
                 ]
 
                 if valid_replies.empty:
-                    return period, nx.Graph()
+                    return period, nx.DiGraph() if directed else nx.Graph()
 
-                # Build undirected user network by aggregating directed weights
-                U = nx.Graph()
+                # Build network
+                U = nx.DiGraph() if directed else nx.Graph()
 
                 interaction_data = defaultdict(lambda: {"count": 0, "sentiment": []})
                 for _, row in valid_replies.iterrows():
@@ -613,7 +616,7 @@ class RedditNetworkAnalyzer:
 
             except Exception as e:
                 logger.error(f"build_period_network_worker failed for {period}: {e}", exc_info=True)
-                return period, nx.Graph()
+                return period, nx.DiGraph() if directed else nx.Graph()
 
         self.temporal_unit = temporal_unit
         max_date = 12 if temporal_unit == "month" else 52  # assume "weeks" otherwise
@@ -695,11 +698,11 @@ class RedditNetworkAnalyzer:
                         snapshots[period] = snapshot_data
                         continue
                 snapshot_df = df_comments[df_comments["aux_partition_key"] == period]
-                snapshot_build_args.append((period, snapshot_df, global_comment_map, 1))
+                snapshot_build_args.append((period, snapshot_df, global_comment_map, 1, directed))
 
             if snapshot_build_args:
                 for i, args in enumerate(snapshot_build_args, 1):
-                    period, _, _, _ = args
+                    period, _, _, _, _ = args
                     networks = _build_snapshot_network_worker(args)
                     if networks and networks[1] and networks[1].number_of_nodes() > 0:
                         snapshots[period] = networks[1]
@@ -759,7 +762,13 @@ class RedditNetworkAnalyzer:
             """Apply BigClam algorithm to detect communities."""
 
             try:
-                n_nodes = network.number_of_nodes()
+                # BigClam works best on undirected structure for community definition
+                if network.is_directed():
+                    network_for_algo = network.to_undirected()
+                else:
+                    network_for_algo = network
+
+                n_nodes = network_for_algo.number_of_nodes()
                 dimensions = max(2, min(20, int(np.sqrt(n_nodes) / 5)))
 
                 bigclam = BigClam(
@@ -768,12 +777,12 @@ class RedditNetworkAnalyzer:
                     seed=self.random_seed,
                 )
 
-                adj_matrix = nx.to_scipy_sparse_array(network)
+                adj_matrix = nx.to_scipy_sparse_array(network_for_algo)
                 bigclam.fit(adj_matrix)
                 memberships = bigclam.get_memberships()
 
                 communities = {}
-                node_list = list(network.nodes())
+                node_list = list(network_for_algo.nodes())
                 for node_idx, comm_affiliations in enumerate(memberships):
                     if comm_affiliations and len(comm_affiliations) > 0:
                         node_name = node_list[node_idx]
@@ -807,7 +816,12 @@ class RedditNetworkAnalyzer:
             """Apply Louvain algorithm to detect communities."""
 
             try:
-                weighted_net = network.copy()
+                # Louvain requires undirected graph
+                if network.is_directed():
+                    weighted_net = network.to_undirected()
+                else:
+                    weighted_net = network.copy()
+
                 for _, _, d in weighted_net.edges(data=True):
                     if "weight" not in d:
                         d["weight"] = 1.0
