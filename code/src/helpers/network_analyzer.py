@@ -527,6 +527,7 @@ class RedditNetworkAnalyzer:
             temporal_unit: str = "month",
             min_gcc_size: int = 10_000,
             snapshots_per_year: int = 4,
+            directed: bool = False,
     ) -> dict:
         """
         Construct temporal snapshots of the user-user interaction network
@@ -546,6 +547,8 @@ class RedditNetworkAnalyzer:
                 creation (default: 10_000).
             snapshots_per_year (int, optional): Number of network snapshots to create
                 per year (default: 4).
+            directed (bool, optional): If True, create directed graphs (nx.DiGraph);
+                otherwise create undirected graphs (nx.Graph) (default: False).
 
         Returns:
             dict: A dictionary mapping periods to user-user networks.
@@ -553,19 +556,19 @@ class RedditNetworkAnalyzer:
 
         def _build_snapshot_network_worker(args):
             """
-            Worker that builds undirected user-user network for a single period.
+            Worker that builds user-user network for a single period.
 
             Args:
-                args (tuple): (period, period_df, global_comment_map, min_interactions)
+                args (tuple): (period, period_df, global_comment_map, min_interactions, directed)
 
             Returns:
                 tuple: (period, networks_dict)
             """
-            period, period_df, global_comment_map, min_interactions = args
+            period, period_df, global_comment_map, min_interactions, directed = args
 
             try:
                 if period_df is None or len(period_df) == 0:
-                    return period, nx.Graph()
+                    return period, nx.DiGraph() if directed else nx.Graph()
 
                 # Map comment ids to users (prefer global map if provided)
                 if global_comment_map is not None:
@@ -585,10 +588,10 @@ class RedditNetworkAnalyzer:
                 ]
 
                 if valid_replies.empty:
-                    return period, nx.Graph()
+                    return period, nx.DiGraph() if directed else nx.Graph()
 
-                # Build undirected user network by aggregating directed weights
-                U = nx.Graph()
+                # Build network
+                U = nx.DiGraph() if directed else nx.Graph()
 
                 interaction_data = defaultdict(lambda: {"count": 0, "sentiment": []})
                 for _, row in valid_replies.iterrows():
@@ -613,7 +616,7 @@ class RedditNetworkAnalyzer:
 
             except Exception as e:
                 logger.error(f"build_period_network_worker failed for {period}: {e}", exc_info=True)
-                return period, nx.Graph()
+                return period, nx.DiGraph() if directed else nx.Graph()
 
         self.temporal_unit = temporal_unit
         max_date = 12 if temporal_unit == "month" else 52  # assume "weeks" otherwise
@@ -689,17 +692,19 @@ class RedditNetworkAnalyzer:
             for period in selected_periods:
                 # allow checkpoint loading to skip work
                 snapshot_filename = f"user_network_{temporal_unit}_{period}.pkl"
+                if directed:
+                    snapshot_filename = f"directed_{snapshot_filename}"
                 if self.use_checkpoints:
                     snapshot_data = self.load_checkpoint(snapshot_filename)
                     if snapshot_data is not None:
                         snapshots[period] = snapshot_data
                         continue
                 snapshot_df = df_comments[df_comments["aux_partition_key"] == period]
-                snapshot_build_args.append((period, snapshot_df, global_comment_map, 1))
+                snapshot_build_args.append((period, snapshot_df, global_comment_map, 1, directed))
 
             if snapshot_build_args:
                 for i, args in enumerate(snapshot_build_args, 1):
-                    period, _, _, _ = args
+                    period, _, _, _, _ = args
                     networks = _build_snapshot_network_worker(args)
                     if networks and networks[1] and networks[1].number_of_nodes() > 0:
                         snapshots[period] = networks[1]
@@ -713,6 +718,8 @@ class RedditNetworkAnalyzer:
                 for period in snapshots.keys():
                     try:
                         snapshot_filename = f"user_network_{temporal_unit}_{period}.pkl"
+                        if directed:
+                            snapshot_filename = f"directed_{snapshot_filename}"
                         self.save_checkpoint(snapshots[period], snapshot_filename)
                     except Exception as e:
                         print(f"    Failed to save checkpoint for {period}: {e}")
@@ -759,7 +766,13 @@ class RedditNetworkAnalyzer:
             """Apply BigClam algorithm to detect communities."""
 
             try:
-                n_nodes = network.number_of_nodes()
+                # BigClam works best on undirected structure for community definition
+                if network.is_directed():
+                    network_for_algo = network.to_undirected()
+                else:
+                    network_for_algo = network
+
+                n_nodes = network_for_algo.number_of_nodes()
                 dimensions = max(2, min(20, int(np.sqrt(n_nodes) / 5)))
 
                 bigclam = BigClam(
@@ -768,12 +781,12 @@ class RedditNetworkAnalyzer:
                     seed=self.random_seed,
                 )
 
-                adj_matrix = nx.to_scipy_sparse_array(network)
+                adj_matrix = nx.to_scipy_sparse_array(network_for_algo)
                 bigclam.fit(adj_matrix)
                 memberships = bigclam.get_memberships()
 
                 communities = {}
-                node_list = list(network.nodes())
+                node_list = list(network_for_algo.nodes())
                 for node_idx, comm_affiliations in enumerate(memberships):
                     if comm_affiliations and len(comm_affiliations) > 0:
                         node_name = node_list[node_idx]
@@ -807,7 +820,12 @@ class RedditNetworkAnalyzer:
             """Apply Louvain algorithm to detect communities."""
 
             try:
-                weighted_net = network.copy()
+                # Louvain requires undirected graph
+                if network.is_directed():
+                    weighted_net = network.to_undirected()
+                else:
+                    weighted_net = network.copy()
+
                 for _, _, d in weighted_net.edges(data=True):
                     if "weight" not in d:
                         d["weight"] = 1.0
@@ -897,20 +915,20 @@ class RedditNetworkAnalyzer:
         # Ensure we only analyze periods present in both datasets
         available_periods = set(self.detected_communities.keys()) & set(self.snapshots.keys())
         sorted_periods = sorted(list(available_periods))
-        
+
         if len(sorted_periods) < 2:
             print(f" Not enough common periods. Found: {sorted_periods}")
             return
 
         # --- PART A: HUB PERSISTENCE (Who stays on top?) ---
         print("\nHUB PERSISTENCE ANALYSIS")
-        
+
         period_hubs = {}
         for period in sorted_periods:
             G = self.snapshots[period]
             degrees = dict(G.degree())
             if not degrees: continue
-            
+
             # Threshold for top 1%
             threshold = np.percentile(list(degrees.values()), 99)
             hubs = {u for u, d in degrees.items() if d >= threshold}
@@ -923,10 +941,10 @@ class RedditNetworkAnalyzer:
 
             hubs1 = period_hubs[p1]
             hubs2 = period_hubs[p2]
-            
+
             retained = hubs1.intersection(hubs2)
             retention_rate = len(retained) / len(hubs1) if hubs1 else 0
-            
+
             print(f"   {p1} -> {p2}: {len(retained)} hubs survived ({retention_rate:.1%})")
 
         # Evergreen Hubs
@@ -938,18 +956,18 @@ class RedditNetworkAnalyzer:
 
         # --- PART B: USER COMMUNITY FIDELITY (Do they switch sides?) ---
         print("\nUSER COMMUNITY FIDELITY")
-        
+
         user_fidelity_scores = []
         switch_counts = defaultdict(int)
-        
+
         for i in range(len(sorted_periods) - 1):
             p1, p2 = sorted_periods[i], sorted_periods[i+1]
-            
+
             # --- CORRECTION: Robust Data Extraction ---
             # Handles if data is stored as {user: [comm]} OR {'communities': {user: [comm]}}
             data1 = self.detected_communities[p1]
             comm_data1 = data1.get('communities', data1) if isinstance(data1, dict) and 'communities' in data1 else data1
-            
+
             data2 = self.detected_communities[p2]
             comm_data2 = data2.get('communities', data2) if isinstance(data2, dict) and 'communities' in data2 else data2
             # ------------------------------------------
@@ -958,43 +976,43 @@ class RedditNetworkAnalyzer:
             def get_groups(c_data):
                 g = defaultdict(set)
                 for u, c_ids in c_data.items():
-                    if c_ids: 
+                    if c_ids:
                         g[c_ids[0]].add(u)
                 return g
-            
+
             groups1 = get_groups(comm_data1)
             groups2 = get_groups(comm_data2)
-            
+
             common_users = set(comm_data1.keys()) & set(comm_data2.keys())
-            
-            if not common_users: 
+
+            if not common_users:
                 print(f" No common users between {p1} and {p2}")
                 continue
-            
+
             period_switch_count = 0
-            
+
             for user in common_users:
                 # Get community IDs
                 c1 = comm_data1[user][0]
                 c2 = comm_data2[user][0]
-                
+
                 members_t1 = groups1.get(c1, set())
                 members_t2 = groups2.get(c2, set())
-                
+
                 # Jaccard Similarity on Neighbors
                 intersection = len(members_t1 & members_t2)
                 union = len(members_t1 | members_t2)
-                
+
                 # If union is 0 (isolated user), stability is technically undefined/0
                 stability = intersection / union if union > 0 else 0
-                
+
                 user_fidelity_scores.append(stability)
-                
+
                 # Define a "Switch" as < 10% neighbour overlap
-                if stability < 0.1: 
+                if stability < 0.1:
                     period_switch_count += 1
                     switch_counts[user] += 1
-            
+
             print(f"   {p1} -> {p2}: {len(common_users)} common users")
             if common_users:
                 # Avg stability for THIS transition
@@ -1007,10 +1025,10 @@ class RedditNetworkAnalyzer:
             avg_fidelity = np.mean(user_fidelity_scores)
             print(f"\n   OVERALL USER METRICS:")
             print(f"      Global Average Fidelity: {avg_fidelity:.3f} (1.0 = Loyal)")
-            
+
             frequent_switchers = {u: c for u, c in switch_counts.items() if c >= (len(sorted_periods) - 2)}
             print(f"      Frequent Switchers (>80% of times): {len(frequent_switchers)}")
-            
+
     def run_network_analysis(
             self,
             synthetic: bool = False,

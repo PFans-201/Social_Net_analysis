@@ -1,5 +1,5 @@
 # Core data science
-matplotlib>=3.10.7
+matplotlib<=3.10
 numpy>=2.3.4
 pandas>=2.3.3
 scipy>=1.16.3
@@ -10,6 +10,7 @@ seaborn>=0.13.2
 networkx>=3.5
 karateclub>=1.2.2  # gclam algorithm
 cdlib>=0.4.0
+pygraphviz # Remove if probelmatic:
 
 # Sentiment analysis
 vaderSentiment>=3.3.2

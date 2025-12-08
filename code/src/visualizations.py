@@ -14,6 +14,7 @@ def load_network_snapshots(
         years: Iterable,
         months: Iterable,
         dir: str = "../data/02_preprocessed",
+        directed: bool = False
 ) -> dict:
     """Load preprocessed user-user interaction network snapshots."""
     snapshots = {}
@@ -22,6 +23,8 @@ def load_network_snapshots(
             period = f"{year}#{month}"
             try:
                 filename = f"user_network_month_{period}.pkl"
+                if directed:
+                    filename = f"directed_{filename}"
                 filepath = os.path.join(dir, filename)
                 if os.path.exists(filepath):
                     with open(filepath, "rb") as fp:

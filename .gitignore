@@ -76,6 +76,7 @@ pip-wheel-metadata/
 *.npz
 
 # Raw data files
+data/01_raw/
 Documentaries.corpus
 
 # Env / Secrets
@@ -85,3 +86,8 @@ Documentaries.corpus
 *.key
 *.pem
 *.crt
+
+# Logs
+logs/
+*.log
+**/*.log
