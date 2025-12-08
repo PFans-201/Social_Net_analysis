@@ -147,6 +147,9 @@ def run_analysis(
                 synthetic_network_name=synthetic_network_name,
             )
 
+        # Phase 4.1: Run the new evolution analysis
+        analyzer.analyze_evolution_dynamics() 
+            
         # Phase 5: Generate descriptive metrics about networks
         analyzer.run_network_analysis()
 
