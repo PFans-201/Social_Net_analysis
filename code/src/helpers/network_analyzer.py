@@ -527,7 +527,7 @@ class RedditNetworkAnalyzer:
             temporal_unit: str = "month",
             min_gcc_size: int = 10_000,
             snapshots_per_year: int = 4,
-            directed: bool = True,  # Added parameter, default to True for DiGraphs
+            directed: bool = False,
     ) -> dict:
         """
         Construct temporal snapshots of the user-user interaction network
@@ -548,7 +548,7 @@ class RedditNetworkAnalyzer:
             snapshots_per_year (int, optional): Number of network snapshots to create
                 per year (default: 4).
             directed (bool, optional): If True, create directed graphs (nx.DiGraph);
-                otherwise create undirected graphs (nx.Graph) (default: True).
+                otherwise create undirected graphs (nx.Graph) (default: False).
 
         Returns:
             dict: A dictionary mapping periods to user-user networks.
@@ -692,6 +692,8 @@ class RedditNetworkAnalyzer:
             for period in selected_periods:
                 # allow checkpoint loading to skip work
                 snapshot_filename = f"user_network_{temporal_unit}_{period}.pkl"
+                if directed:
+                    snapshot_filename = f"directed_{snapshot_filename}"
                 if self.use_checkpoints:
                     snapshot_data = self.load_checkpoint(snapshot_filename)
                     if snapshot_data is not None:
@@ -716,6 +718,8 @@ class RedditNetworkAnalyzer:
                 for period in snapshots.keys():
                     try:
                         snapshot_filename = f"user_network_{temporal_unit}_{period}.pkl"
+                        if directed:
+                            snapshot_filename = f"directed_{snapshot_filename}"
                         self.save_checkpoint(snapshots[period], snapshot_filename)
                     except Exception as e:
                         print(f"    Failed to save checkpoint for {period}: {e}")
@@ -911,20 +915,20 @@ class RedditNetworkAnalyzer:
         # Ensure we only analyze periods present in both datasets
         available_periods = set(self.detected_communities.keys()) & set(self.snapshots.keys())
         sorted_periods = sorted(list(available_periods))
-        
+
         if len(sorted_periods) < 2:
             print(f" Not enough common periods. Found: {sorted_periods}")
             return
 
         # --- PART A: HUB PERSISTENCE (Who stays on top?) ---
         print("\nHUB PERSISTENCE ANALYSIS")
-        
+
         period_hubs = {}
         for period in sorted_periods:
             G = self.snapshots[period]
             degrees = dict(G.degree())
             if not degrees: continue
-            
+
             # Threshold for top 1%
             threshold = np.percentile(list(degrees.values()), 99)
             hubs = {u for u, d in degrees.items() if d >= threshold}
@@ -937,10 +941,10 @@ class RedditNetworkAnalyzer:
 
             hubs1 = period_hubs[p1]
             hubs2 = period_hubs[p2]
-            
+
             retained = hubs1.intersection(hubs2)
             retention_rate = len(retained) / len(hubs1) if hubs1 else 0
-            
+
             print(f"   {p1} -> {p2}: {len(retained)} hubs survived ({retention_rate:.1%})")
 
         # Evergreen Hubs
@@ -952,18 +956,18 @@ class RedditNetworkAnalyzer:
 
         # --- PART B: USER COMMUNITY FIDELITY (Do they switch sides?) ---
         print("\nUSER COMMUNITY FIDELITY")
-        
+
         user_fidelity_scores = []
         switch_counts = defaultdict(int)
-        
+
         for i in range(len(sorted_periods) - 1):
             p1, p2 = sorted_periods[i], sorted_periods[i+1]
-            
+
             # --- CORRECTION: Robust Data Extraction ---
             # Handles if data is stored as {user: [comm]} OR {'communities': {user: [comm]}}
             data1 = self.detected_communities[p1]
             comm_data1 = data1.get('communities', data1) if isinstance(data1, dict) and 'communities' in data1 else data1
-            
+
             data2 = self.detected_communities[p2]
             comm_data2 = data2.get('communities', data2) if isinstance(data2, dict) and 'communities' in data2 else data2
             # ------------------------------------------
@@ -972,43 +976,43 @@ class RedditNetworkAnalyzer:
             def get_groups(c_data):
                 g = defaultdict(set)
                 for u, c_ids in c_data.items():
-                    if c_ids: 
+                    if c_ids:
                         g[c_ids[0]].add(u)
                 return g
-            
+
             groups1 = get_groups(comm_data1)
             groups2 = get_groups(comm_data2)
-            
+
             common_users = set(comm_data1.keys()) & set(comm_data2.keys())
-            
-            if not common_users: 
+
+            if not common_users:
                 print(f" No common users between {p1} and {p2}")
                 continue
-            
+
             period_switch_count = 0
-            
+
             for user in common_users:
                 # Get community IDs
                 c1 = comm_data1[user][0]
                 c2 = comm_data2[user][0]
-                
+
                 members_t1 = groups1.get(c1, set())
                 members_t2 = groups2.get(c2, set())
-                
+
                 # Jaccard Similarity on Neighbors
                 intersection = len(members_t1 & members_t2)
                 union = len(members_t1 | members_t2)
-                
+
                 # If union is 0 (isolated user), stability is technically undefined/0
                 stability = intersection / union if union > 0 else 0
-                
+
                 user_fidelity_scores.append(stability)
-                
+
                 # Define a "Switch" as < 10% neighbour overlap
-                if stability < 0.1: 
+                if stability < 0.1:
                     period_switch_count += 1
                     switch_counts[user] += 1
-            
+
             print(f"   {p1} -> {p2}: {len(common_users)} common users")
             if common_users:
                 # Avg stability for THIS transition
@@ -1021,10 +1025,10 @@ class RedditNetworkAnalyzer:
             avg_fidelity = np.mean(user_fidelity_scores)
             print(f"\n   OVERALL USER METRICS:")
             print(f"      Global Average Fidelity: {avg_fidelity:.3f} (1.0 = Loyal)")
-            
+
             frequent_switchers = {u: c for u, c in switch_counts.items() if c >= (len(sorted_periods) - 2)}
             print(f"      Frequent Switchers (>80% of times): {len(frequent_switchers)}")
-            
+
     def run_network_analysis(
             self,
             synthetic: bool = False,
