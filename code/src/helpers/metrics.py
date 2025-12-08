@@ -172,7 +172,7 @@ def get_community_exit_counts(reference: dict, current_data: dict):
     return len(former_users)
 
 
-def perform_ks_test(reference: list, current_data: list):
+def perform_ks_test(reference: list, current_data: list) -> dict:
     """
     Perform a Kolmogorov-Smirnov test to check whether two samples
     are statistically likely to follow the same distribution.
@@ -194,7 +194,7 @@ def perform_ks_test(reference: list, current_data: list):
     return ks_result
 
 
-def compute_js_distance(reference: list, current_data: list, num_bins: int = 50):
+def compute_js_distance(reference: list, current_data: list, num_bins: int = 50) -> float:
     """
     Compute the Jensen-Shannon distance between two samples.
 
@@ -228,3 +228,47 @@ def compute_js_distance(reference: list, current_data: list, num_bins: int = 50)
     js_distance = jensenshannon(p, q)
 
     return js_distance
+
+
+def compute_psi(reference: list, current_data: list, num_bins: int = 50) -> float:
+    """
+    Calculate the Population Stability Index (PSI), comparing a current data
+    sample against a reference sample.
+
+    Args:
+        reference (list): Baseline (expected) distribution.
+        current_data (list): New (actual) distribution.
+        num_bins (int, optional): Number of quantile-based bins
+            to use from the reference sample. (default: 50).
+
+    Returns:
+        float: The total Population Stability Index.
+    """
+
+    ref = np.asarray(reference)
+    cur = np.asarray(current_data)
+
+    # Quantile-based bin edges from the reference sample
+    quantiles = np.linspace(0, 1, num_bins + 1)
+    bin_edges = np.unique(np.quantile(ref, quantiles))
+
+    # Handle degenerate cases (e.g., reference values all equal)
+    if len(bin_edges) == 1:
+        raise ValueError("Reference sample has no variability: PSI cannot be computed.")
+
+    # Bin the samples and convert to proportions
+    ref_counts, _ = np.histogram(ref, bins=bin_edges)
+    cur_counts, _ = np.histogram(cur, bins=bin_edges)
+
+    ref_props = ref_counts / len(ref)
+    cur_props = cur_counts / len(cur)
+
+    # Replace zeros to avoid division/log issues
+    ref_props = np.where(ref_props == 0, 1e-8, ref_props)
+    cur_props = np.where(cur_props == 0, 1e-8, cur_props)
+
+    # PSI formula
+    psi_values = (cur_props - ref_props) * np.log(cur_props / ref_props)
+    psi_total = psi_values.sum()
+
+    return psi_total
