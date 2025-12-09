@@ -14,21 +14,9 @@ Study of whether macroscopic stability emerges from microscopic stochasticity in
 
 ---
 
-## Notes from the Professor
-
-- Good choice of dataset, relevant and rich for temporal analysis and holistic modeling of dynamic social networks.
-- FOCUS ON CLASS 7 MATERIAL: Dynamic social networks, influences by hubs in time:
-  - Threshold (deterministic) vs independent cascade models (probabilistic)
-  - Information diffusion models (markov chains, SIR/SIS?)
-- Understanding a network by modeling the network creation process is a key aspect:
-  - For example, our user-user interaction network has a pareto distribution of node degrees
-  - Can we model this network generation process? Can we simulate similar networks with a Barabási-Albert (BA) extended model or other?
-  - Could it be modeled as a stochastic block model (SBM) or an extension like the dynamic SBM?
-- Consider also modeling how network evolves over time (social network dynamics).
-
 ## Theoretical Foundation
 
-Based on the literature, we're investigating "Evidence of equilibrium dynamics in human social networks evolving in time" - whether macroscopic stability emerges from microscopic stochasticity in the user-user interaction network obtained from the r/Documentaries subreddit.
+We're investigating evidence of equilibrium dynamics in human social networks evolving in time - whether macroscopic stability emerges from microscopic stochasticity in the user-user interaction network obtained from the r/Documentaries subreddit.
 
 ## Research Questions
 
@@ -62,39 +50,3 @@ Based on the literature, we're investigating "Evidence of equilibrium dynamics i
   * Large subreddits may have very large corpus files.
   * Speaker counts may be inflated due to duplicates in preprocessing.
   * Dataset is **beta** and subject to updates for completeness and data consistency.
-
----
-
-## References
-
-* [Complex Network Modelling with Power-law Activating Patterns and Its Evolutionary Dynamics](https://arxiv.org/abs/2502.09768)
-* [Multiresolution Analysis and Statistical Thresholding on Dynamic Networks](https://arxiv.org/abs/2506.01208)
-* [Continuous-time Graph Representation with Sequential Survival Process](https://browse.arxiv.org/html/2312.13068v1)
-* [Motif-Based Visual Analysis of Dynamic Networks](https://export.arxiv.org/pdf/2208.11932v1)
-* [Evidence of equilibrium dynamics in human social networks evolving in time](https://arxiv.org/abs/2410.11635)
-* [Clustering time-evolving networks using the spatiotemporal graph Laplacian](https://ui.adsabs.harvard.edu/abs/2025Chaos..35a3126T/abstract)
-* [Bursty Switching Dynamics Promotes the Collapse of Network Topologies](https://arxiv.org/abs/2505.12417)
-* [Triadic balance and network evolution in predictive models of signed networks](https://www.nature.com/articles/s41598-024-85078-5?error=cookies_not_supported&code=182e36d1-0ff2-467f-acc2-5ff7baeb2d0f)
-* [Reliable Time Prediction in the Markov Stochastic Block Model](https://hal.science/hal-02536727v2/file/msbm.pdf)
-* [Temporal Dynamics of Coordinated Online Behavior: Stability, Archetypes, and Influence | AI Research Paper Details](https://aimodels.fyi/papers/arxiv/temporal-dynamics-coordinated-online-behavior-stability-archetypes)
-* [A two-stage model leveraging friendship network for community evolution prediction in interactive networks](https://arxiv.org/abs/2503.15788)
-* [Random walk based snapshot clustering for detecting community dynamics in temporal networks](https://arxiv.org/abs/2412.12187)
-* [Community Shaping in the Digital Age: A Temporal Fusion Framework for Analyzing Discourse Fragmentation in Online - - Social Networks | AI Research Paper Details](https://aimodels.fyi/papers/arxiv/community-shaping-digital-age-temporal-fusion-framework)
-* [Benchmarking Evolutionary Community Detection Algorithms in Dynamic Networks](https://browse.arxiv.org/html/2312.13784v1)
-* [Detection of dynamic communities in temporal networks with sparse data](https://appliednetsci.springeropen.com/articles/10.1007/s41109-024-00687-3)
-* [Temporal Dynamics of Coordinated Online Behavior: Stability, Archetypes, and Influence](https://arxiv.org/abs/2301.06774)
-* [Evidence of equilibrium dynamics in human social networks evolving in time](https://arxiv.org/abs/2410.11635)
-* [Modeling the duality of content niches and user interactions on online social media platforms](https://www.research-collection.ethz.ch/handle/20.500.11850/743046)
-* [Here Be Livestreams: Trade-offs in Creating Temporal Maps of Reddit](https://browse.arxiv.org/html/2309.14259v2)
-
-### Other links
-
-* https://github.com/benedekrozemberczki/karateclub
-* https://cdlib.readthedocs.io/en/v0.2.5/reference/cd_algorithms/algs/cdlib.algorithms.big_clam.html
-* https://robromijnders.github.io/bigclam/
-* https://notebook.community/sanja7s/SR_Twitter/src_FIN/BigClam
-* https://karateclub.readthedocs.io/en/latest/_modules/karateclub/community_detection/overlapping/bigclam.html
-* https://www.bibsonomy.org/bibtex/23bb0e53d728e55799d56e8c6049575c1/jaeschke
-* https://hackmd.io/@deadwing97/rJcVp9NpI
-* https://paperswithcode.com/paper/overlapping-community-detection-at-scale-a
-* https://blog.csdn.net/weixin_57643648/article/details/123652501
