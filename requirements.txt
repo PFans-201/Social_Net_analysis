@@ -10,7 +10,8 @@ seaborn>=0.13.2
 networkx>=3.5
 karateclub>=1.2.2  # gclam algorithm
 cdlib>=0.4.0
-pygraphviz # Remove if probelmatic:
+pygraphviz # Comment out if probelmatic: 
+# just used for markov model vizualization
 
 # Sentiment analysis
 vaderSentiment>=3.3.2
